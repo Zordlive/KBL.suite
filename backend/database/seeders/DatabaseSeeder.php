@@ -26,6 +26,17 @@ class DatabaseSeeder extends Seeder
         ]);
         $admin->assignRole('administrator');
 
+        $admin2 = User::factory()->create([
+            'name' => 'Admin Test',
+            'agent_number' => 'ADMIN-002',
+            'gender' => 'other',
+            'position' => 'Administrateur',
+            'email' => 'admin2@klb.suite',
+            'password' => bcrypt('Admin123!'),
+            'status' => 'active',
+        ]);
+        $admin2->assignRole('administrator');
+
         $agent = User::factory()->create([
             'name' => 'Agent Test',
             'agent_number' => 'AGENT-001',
