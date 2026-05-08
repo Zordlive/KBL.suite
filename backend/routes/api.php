@@ -2,6 +2,9 @@
 
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\InventoryController;
+use App\Http\Controllers\Api\V1\NetworkInventoryCheckController;
+use App\Http\Controllers\Api\V1\NetworkSaleController;
+use App\Http\Controllers\Api\V1\NetworkStockController;
 use App\Http\Controllers\Api\V1\ProductController;
 use App\Http\Controllers\Api\V1\SaleController;
 use App\Http\Controllers\Api\V1\StockController;
@@ -40,6 +43,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('sales/{sale}', [SaleController::class, 'destroy'])->middleware('permission:delete sales');
     Route::post('sales/{sale}/items', [SaleController::class, 'addItem']);
     Route::delete('sales/{sale}/items/{item}', [SaleController::class, 'removeItem']);
+
+    // Stock module
+    Route::get('stock-module/stocks', [NetworkStockController::class, 'index']);
+    Route::put('stock-module/stocks/{network}', [NetworkStockController::class, 'update']);
+    Route::get('stock-module/checks/today', [NetworkInventoryCheckController::class, 'today']);
+    Route::post('stock-module/checks', [NetworkInventoryCheckController::class, 'store']);
+    Route::put('stock-module/checks/{check}', [NetworkInventoryCheckController::class, 'update']);
+    Route::get('stock-module/inventories/today', [NetworkInventoryCheckController::class, 'today']);
+    Route::post('stock-module/inventories', [NetworkInventoryCheckController::class, 'store']);
+    Route::get('stock-module/inventories/logs', [NetworkInventoryCheckController::class, 'logs']);
+    Route::get('stock-module/sales', [NetworkSaleController::class, 'index']);
+    Route::post('stock-module/sales', [NetworkSaleController::class, 'store']);
+    Route::get('stock-module/summary', [NetworkSaleController::class, 'summary']);
 
     // Inventories
     Route::get('inventories', [InventoryController::class, 'index'])->middleware('permission:view inventory');

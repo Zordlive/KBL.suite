@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuth } from '../hooks/useAuth';
 import Button from '../components/ui/Button';
+import StockManagement from './StockManagement';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
@@ -68,6 +69,9 @@ const Dashboard = () => {
           </div>
         </section>
       </main>
+      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <StockManagement />
+      </div>
     </div>
   );
 };
