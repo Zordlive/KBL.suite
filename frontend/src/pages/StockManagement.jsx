@@ -13,14 +13,17 @@ const networks = ['Orange', 'Airtel', 'Vodacom'];
 const formatNumber = (value) => new Intl.NumberFormat('fr-FR').format(value);
 
 const StockManagement = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const isAdmin = user?.roles?.some((role) => role.name === 'administrator');
 
   const [stocks, setStocks] = useState([]);
   const [todayChecks, setTodayChecks] = useState([]);
   const [discrepancies, setDiscrepancies] = useState([]);
   const [pendingVerification, setPendingVerification] = useState(false);
+  const [openingStatus, setOpeningStatus] = useState({ completed: false, canSubmit: false, cutoffStart: '07:00', cutoffEnd: '13:00' });
   const [inventoryStatus, setInventoryStatus] = useState({ completed: false, canSubmit: false, cutoffStart: '19:00', cutoffEnd: '21:30' });
+  const [lastEveningChecks, setLastEveningChecks] = useState([]);
+  const [checkType, setCheckType] = useState('opening');
   const [summary, setSummary] = useState({ total_sales: 0, total_quantity: 0, anomalies: 0, network_sales: {} });
   const [sales, setSales] = useState([]);
   const [salesMeta, setSalesMeta] = useState({ page: 1, last_page: 1, total: 0, per_page: 10, offset: 0 });
@@ -60,7 +63,9 @@ const StockManagement = () => {
       setTodayChecks(response.data.todayChecks || []);
       setDiscrepancies(response.data.discrepancies || []);
       setPendingVerification(response.data.pendingVerification ?? false);
-      setInventoryStatus(response.data.inventoryStatus || { completed: false, canSubmit: false, cutoffStart: '19:00', cutoffEnd: '21:30' });
+      setOpeningStatus(response.data.inventoryStatus?.opening || { completed: false, canSubmit: false, cutoffStart: '07:00', cutoffEnd: '13:00' });
+      setInventoryStatus(response.data.inventoryStatus?.evening || { completed: false, canSubmit: false, cutoffStart: '19:00', cutoffEnd: '21:30' });
+      setLastEveningChecks(response.data.inventoryStatus?.lastEveningChecks || []);
       initCheckValues(response.data.todayChecks || []);
       setInventoryValues(response.data.todayChecks?.reduce((acc, next) => ({ ...acc, [next.network]: next.counted_quantity }), { Orange: 0, Airtel: 0, Vodacom: 0 }) || { Orange: 0, Airtel: 0, Vodacom: 0 });
 
@@ -166,23 +171,29 @@ const StockManagement = () => {
         counted_quantity: Number(checkValues[network] ?? 0),
       }));
 
-      if (todayChecks.length === networks.length) {
+      if (todayChecks.filter((check) => check.check_type === checkType).length === networks.length) {
         if (!isAdmin) {
           setErrorMessage('Seuls les administrateurs peuvent corriger les écarts.');
           return;
         }
 
         await Promise.all(
-          todayChecks.map((check) =>
-            api.put(`/stock-module/checks/${check.id}`, {
-              counted_quantity: Number(checkValues[check.network] ?? 0),
-            }),
-          ),
+          todayChecks
+            .filter((check) => check.check_type === checkType)
+            .map((check) =>
+              api.put(`/stock-module/checks/${check.id}`, {
+                counted_quantity: Number(checkValues[check.network] ?? 0),
+              }),
+            ),
         );
         setSuccessMessage('Écarts corrigés et historique des corrections enregistré.');
       } else {
-        await api.post('/stock-module/checks', { checks });
-        setSuccessMessage('Vérification des stocks enregistrée avec anomalies calculées.');
+        await api.post('/stock-module/checks', { check_type: checkType, checks });
+        setSuccessMessage(
+          checkType === 'opening'
+            ? 'Vérification d’ouverture enregistrée et comparée à l’inventaire du soir précédent.'
+            : 'Inventaire du soir enregistré et comparé au stock courant.',
+        );
       }
 
       setShowCheckModal(false);
@@ -207,7 +218,7 @@ const StockManagement = () => {
         counted_quantity: Number(inventoryValues[network] ?? 0),
       }));
 
-      await api.post('/stock-module/inventories', { checks });
+      await api.post('/stock-module/inventories', { check_type: 'evening', checks });
       setShowInventoryModal(false);
       setSuccessMessage('Inventaire journalier validé et anomalies enregistrées.');
       await loadStocks();
@@ -283,10 +294,31 @@ const StockManagement = () => {
             <p className="mt-2 text-sm text-slate-600">Module professionnel de gestion des stocks Orange, Airtel et Vodacom.</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            {inventoryStatus.canSubmit && !inventoryStatus.completed ? (
-              <Button variant="secondary" onClick={() => setShowInventoryModal(true)}>Inventaire</Button>
+            <span className="rounded-full bg-slate-100 px-3 py-2 text-sm text-slate-700">{user?.name}</span>
+            {openingStatus.canSubmit && !openingStatus.completed ? (
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setCheckType('opening');
+                  setShowCheckModal(true);
+                }}
+              >
+                Vérification d’ouverture
+              </Button>
             ) : null}
-            <Button variant="secondary" onClick={() => setShowCheckModal(true)}>Vérification stocks</Button>
+            {inventoryStatus.canSubmit && !inventoryStatus.completed ? (
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setCheckType('evening');
+                  setShowCheckModal(true);
+                }}
+              >
+                Vérification du soir
+              </Button>
+            ) : null}
+            <Button variant="secondary" onClick={() => setShowInventoryModal(true)}>Inventaire</Button>
+            <Button variant="secondary" onClick={logout}>Déconnexion</Button>
           </div>
         </div>
       </header>
@@ -297,10 +329,10 @@ const StockManagement = () => {
         </div>
       )}
 
-      {!inventoryStatus.completed && !inventoryStatus.canSubmit && (
+      {openingStatus.canSubmit || inventoryStatus.canSubmit ? null : (
         <div className="rounded-3xl border-l-4 border-blue-500 bg-blue-50 p-6 text-sm text-blue-900 shadow-sm">
-          <strong className="block text-base">Inventaire journalier fermé</strong>
-          <p>L'inventaire peut être saisi entre {inventoryStatus.cutoffStart} et {inventoryStatus.cutoffEnd}. Un seul inventaire est autorisé par jour.</p>
+          <strong className="block text-base">Fenêtres de vérification fermées</strong>
+          <p>La vérification d’ouverture est disponible entre {openingStatus.cutoffStart} et {openingStatus.cutoffEnd}. L’inventaire du soir est disponible entre {inventoryStatus.cutoffStart} et {inventoryStatus.cutoffEnd}.</p>
         </div>
       )}
 
@@ -319,7 +351,7 @@ const StockManagement = () => {
         {/* Stocks par réseau */}
         <div className="grid gap-4 lg:grid-cols-3 mb-8">
           {stocks.map((stock) => (
-            <div key={stock.network} className="rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 p-6 border border-slate-200">
+            <div key={stock.network} className="rounded-2xl bg-linear-to-br from-slate-50 to-slate-100 p-6 border border-slate-200">
               <h3 className="text-lg font-semibold text-slate-900 mb-2">{stock.network}</h3>
               <p className="text-3xl font-bold text-blue-600">{formatNumber(stock.quantity)}</p>
               <p className="text-sm text-slate-500 mt-1">unités disponibles</p>
@@ -405,6 +437,7 @@ const StockManagement = () => {
         onSubmit={handleCheckSubmit}
         isAdmin={isAdmin}
         isReviewMode={activeDiscrepancy}
+        checkType={checkType}
         errors={errorMessage}
         saving={savingCheck}
       />
@@ -437,6 +470,7 @@ const StockManagement = () => {
 
       <DiscrepancyAlertModal
         isOpen={showDiscrepancyAlert}
+        onClose={() => setShowDiscrepancyAlert(false)}
         discrepancies={discrepancies.filter(d => !d.resolved)}
         isAdmin={isAdmin}
       />

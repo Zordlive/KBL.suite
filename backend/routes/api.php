@@ -22,6 +22,10 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanc
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
     // User management
+    Route::get('admin/users', [UserController::class, 'index']);
+    Route::put('admin/users/{user}/role', [UserController::class, 'updateRole']);
+    Route::get('admin/stats', [\App\Http\Controllers\Api\V1\AdminController::class, 'stats']);
+
     Route::get('users/pending-super-agents', [UserController::class, 'pendingSuperAgents'])->middleware('permission:approve super agents');
     Route::post('users/{user}/approve', [UserController::class, 'approve'])->middleware('permission:approve super agents');
 

@@ -6,6 +6,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import EnvironmentSelection from './pages/EnvironmentSelection';
 import StockManagement from './pages/StockManagement';
+import AdminPanel from './pages/AdminPanel';
 
 function App() {
   const { user, loading } = useAuth();
@@ -36,6 +37,10 @@ function App() {
         <Route
           path="/stock-management"
           element={user ? <StockManagement /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/admin"
+          element={user ? <AdminPanel /> : <Navigate to="/login" />}
         />
         <Route
           path="/remise-repris"

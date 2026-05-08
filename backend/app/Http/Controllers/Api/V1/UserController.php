@@ -29,4 +29,36 @@ class UserController extends Controller
 
         return response()->json($user->load('roles'));
     }
+
+    public function index(Request $request)
+    {
+        if (!$request->user()->hasRole('administrator')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $users = User::with('roles')->get();
+
+        return response()->json($users);
+    }
+
+    public function updateRole(Request $request, User $user)
+    {
+        if (!$request->user()->hasRole('administrator')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $request->validate([
+            'role' => 'required|in:agent,super_agent,administrator',
+        ]);
+
+        $role = $request->input('role');
+
+        $user->syncRoles([$role]);
+        $user->status = $role === 'super_agent' && $user->status === 'pending'
+            ? 'pending'
+            : 'active';
+        $user->save();
+
+        return response()->json($user->load('roles'));
+    }
 }

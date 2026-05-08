@@ -23,6 +23,11 @@ const Dashboard = () => {
               <div className="rounded-2xl bg-slate-100 px-4 py-2 text-sm text-slate-700">
                 {user?.name} • {isAdmin ? 'Administrateur' : isSuperAgent ? 'Super Agent' : 'Agent'}
               </div>
+              {isAdmin && (
+                <Button onClick={() => window.location.assign('/admin')} variant="primary">
+                  Panneau admin
+                </Button>
+              )}
               <Button onClick={logout} variant="secondary">
                 Déconnexion
               </Button>

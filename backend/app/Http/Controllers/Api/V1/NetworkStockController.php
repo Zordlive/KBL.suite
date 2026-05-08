@@ -29,26 +29,45 @@ class NetworkStockController extends Controller
 
         $today = now()->toDateString();
         $todayChecks = NetworkInventoryCheck::with('user')->whereDate('checked_at', $today)->get();
+        $openingChecks = $todayChecks->where('check_type', 'opening')->values();
+        $eveningChecks = $todayChecks->where('check_type', 'evening')->values();
         $discrepancies = $todayChecks->filter(fn ($check) => $check->difference !== 0)->values();
-        $inventoryCompleted = $todayChecks->count() === count(NetworkStock::NETWORKS);
+        $openingCompleted = $openingChecks->count() === count(NetworkStock::NETWORKS);
+        $eveningCompleted = $eveningChecks->count() === count(NetworkStock::NETWORKS);
         $currentTime = now();
-        $windowStart = now()->copy()->setTime(19, 0);
-        $windowEnd = now()->copy()->setTime(21, 30);
-        $canSubmitInventory = $currentTime->between($windowStart, $windowEnd) && ! $inventoryCompleted;
+        $morningStart = now()->copy()->setTime(7, 0);
+        $morningEnd = now()->copy()->setTime(13, 0);
+        $eveningStart = now()->copy()->setTime(19, 0);
+        $eveningEnd = now()->copy()->setTime(21, 30);
+        $canSubmitOpening = $currentTime->between($morningStart, $morningEnd) && ! $openingCompleted;
+        $canSubmitInventory = $currentTime->between($eveningStart, $eveningEnd) && ! $eveningCompleted;
+
+        $previousEveningChecks = NetworkInventoryCheck::with('user')
+            ->where('check_type', 'evening')
+            ->whereDate('checked_at', '<', $today)
+            ->orderByDesc('checked_at')
+            ->get();
 
         return Response::json([
             'stocks' => $stockRecords,
             'todayChecks' => $todayChecks,
+            'openingChecks' => $openingChecks,
+            'eveningChecks' => $eveningChecks,
             'discrepancies' => $discrepancies,
             'inventoryStatus' => [
-                'completed' => $inventoryCompleted,
-                'canSubmit' => $canSubmitInventory,
-                'cutoffStart' => '19:00',
-                'cutoffEnd' => '21:30',
-                'lastInventory' => NetworkInventoryCheck::with('user')
-                    ->whereDate('checked_at', '<', $today)
-                    ->orderByDesc('checked_at')
-                    ->get(),
+                'opening' => [
+                    'completed' => $openingCompleted,
+                    'canSubmit' => $canSubmitOpening,
+                    'cutoffStart' => '07:00',
+                    'cutoffEnd' => '13:00',
+                ],
+                'evening' => [
+                    'completed' => $eveningCompleted,
+                    'canSubmit' => $canSubmitInventory,
+                    'cutoffStart' => '19:00',
+                    'cutoffEnd' => '21:30',
+                ],
+                'lastEveningChecks' => $previousEveningChecks,
             ],
         ]);
     }

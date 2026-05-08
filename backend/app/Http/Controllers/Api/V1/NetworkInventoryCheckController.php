@@ -19,7 +19,16 @@ class NetworkInventoryCheckController extends Controller
             ->whereDate('checked_at', $today)
             ->get();
 
-        return Response::json(['checks' => $checks]);
+        $openingChecks = $checks->where('check_type', 'opening')->values();
+        $eveningChecks = $checks->where('check_type', 'evening')->values();
+
+        return Response::json([
+            'checks' => $checks,
+            'openingChecks' => $openingChecks,
+            'eveningChecks' => $eveningChecks,
+            'openingCompleted' => $openingChecks->count() === count(NetworkStock::NETWORKS),
+            'eveningCompleted' => $eveningChecks->count() === count(NetworkStock::NETWORKS),
+        ]);
     }
 
     public function logs()
@@ -35,27 +44,37 @@ class NetworkInventoryCheckController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            'check_type' => 'required|in:opening,evening',
             'checks' => 'required|array|size:3',
             'checks.*.network' => 'required|in:Orange,Airtel,Vodacom',
             'checks.*.counted_quantity' => 'required|integer|min:0',
         ]);
 
         $current = now();
-        $windowStart = now()->setTime(19, 0);
-        $windowEnd = now()->setTime(21, 30);
+        $checkType = $request->input('check_type');
+
+        if ($checkType === 'opening') {
+            $windowStart = now()->setTime(7, 0);
+            $windowEnd = now()->setTime(13, 0);
+            $errorMessage = 'La vérification d’ouverture ne peut être effectuée qu’entre 07h00 et 13h00.';
+        } else {
+            $windowStart = now()->setTime(19, 0);
+            $windowEnd = now()->setTime(21, 30);
+            $errorMessage = 'L’inventaire ne peut être validé qu’entre 19h00 et 21h30.';
+        }
 
         if (! $current->between($windowStart, $windowEnd)) {
             return Response::json([
-                'message' => 'L’inventaire ne peut être validé qu’entre 19h00 et 21h30.',
+                'message' => $errorMessage,
             ], 403);
         }
 
         $today = now()->toDateString();
-        $existing = NetworkInventoryCheck::whereDate('checked_at', $today)->exists();
+        $existing = NetworkInventoryCheck::whereDate('checked_at', $today)->where('check_type', $checkType)->exists();
 
         if ($existing) {
             return Response::json([
-                'message' => 'Un inventaire a déjà été enregistré aujourd’hui.',
+                'message' => 'Un enregistrement ' . ($checkType === 'opening' ? 'd’ouverture' : 'd’inventaire') . ' a déjà été effectué aujourd’hui.',
             ], 422);
         }
 
@@ -75,11 +94,23 @@ class NetworkInventoryCheckController extends Controller
                 'updated_by' => Auth::id(),
             ]);
 
-            $expected = $stock->quantity;
+            if ($checkType === 'opening') {
+                $previousEvening = NetworkInventoryCheck::where('network', $checkData['network'])
+                    ->where('check_type', 'evening')
+                    ->whereDate('checked_at', '<', $today)
+                    ->orderByDesc('checked_at')
+                    ->first();
+
+                $expected = $previousEvening ? $previousEvening->counted_quantity : $stock->quantity;
+            } else {
+                $expected = $stock->quantity;
+            }
+
             $difference = $checkData['counted_quantity'] - $expected;
 
             $record = NetworkInventoryCheck::create([
                 'network' => $checkData['network'],
+                'check_type' => $checkType,
                 'counted_quantity' => $checkData['counted_quantity'],
                 'expected_quantity' => $expected,
                 'difference' => $difference,
@@ -104,6 +135,7 @@ class NetworkInventoryCheckController extends Controller
                 'metadata' => [
                     'expected_quantity' => $expected,
                     'stock_before' => $expected,
+                    'check_type' => $checkType,
                 ],
             ]);
 

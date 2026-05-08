@@ -11,11 +11,18 @@ const VerificationModal = ({
   onSubmit,
   isAdmin,
   isReviewMode,
+  checkType,
   errors,
   saving,
 }) => {
+  const title = isReviewMode
+    ? 'Correction d’écart'
+    : checkType === 'opening'
+    ? 'Vérification d’ouverture'
+    : 'Vérification du soir';
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={isReviewMode ? 'Correction d’écart' : 'Vérification des stocks restants'}>
+    <Modal isOpen={isOpen} onClose={onClose} title={title}>
       <div className="space-y-4">
         <p className="text-sm text-slate-600">
           Saisissez les stocks restants par réseau. La comparaison avec le dernier inventaire sera faite automatiquement.

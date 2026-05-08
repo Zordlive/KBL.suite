@@ -11,6 +11,7 @@ class NetworkInventoryCheck extends Model
 {
     protected $fillable = [
         'network',
+        'check_type',
         'counted_quantity',
         'expected_quantity',
         'difference',
