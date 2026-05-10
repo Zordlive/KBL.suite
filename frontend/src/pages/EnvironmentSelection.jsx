@@ -97,7 +97,6 @@ const EnvironmentSelection = () => {
                 className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
               >
                 Accéder aux Remises et Repris
-                <span className="block text-sm opacity-75 mt-1">(Bientôt disponible)</span>
               </Button>
             </div>
           </div>

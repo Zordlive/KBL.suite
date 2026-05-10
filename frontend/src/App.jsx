@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import EnvironmentSelection from './pages/EnvironmentSelection';
 import StockManagement from './pages/StockManagement';
 import AdminPanel from './pages/AdminPanel';
+import RemiseRepris from './pages/RemiseRepris';
 
 function App() {
   const { user, loading } = useAuth();
@@ -44,7 +45,7 @@ function App() {
         />
         <Route
           path="/remise-repris"
-          element={<div className="min-h-screen flex items-center justify-center"><div className="text-center"><h1 className="text-2xl font-bold text-gray-500">Module Remise et Repris</h1><p className="text-gray-400 mt-2">Bientôt disponible</p></div></div>}
+          element={user ? <RemiseRepris /> : <Navigate to="/login" />}
         />
         <Route
           path="/"

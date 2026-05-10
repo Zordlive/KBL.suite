@@ -8,9 +8,7 @@ use App\Http\Controllers\Api\V1\NetworkStockController;
 use App\Http\Controllers\Api\V1\ProductController;
 use App\Http\Controllers\Api\V1\SaleController;
 use App\Http\Controllers\Api\V1\StockController;
-use App\Http\Controllers\Api\V1\UserController;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\V1\AccountBalanceController;
 
 Route::middleware('auth:sanctum')->get('/user', [AuthController::class, 'me']);
 
@@ -69,4 +67,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('inventories/{inventory}', [InventoryController::class, 'destroy'])->middleware('permission:delete inventory');
     Route::post('inventories/{inventory}/items', [InventoryController::class, 'addItem']);
     Route::put('inventories/{inventory}/items/{item}', [InventoryController::class, 'updateItem']);
+
+    // Account Balances
+    Route::apiResource('account-balances', AccountBalanceController::class);
 });
