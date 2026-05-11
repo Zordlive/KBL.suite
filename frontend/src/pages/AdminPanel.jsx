@@ -17,21 +17,25 @@ const AdminPanel = () => {
   const [error, setError] = useState('');
   const [savingStock, setSavingStock] = useState(null);
   const [savingRole, setSavingRole] = useState(null);
+  const [exchangeRate, setExchangeRate] = useState('');
+  const [savingExchangeRate, setSavingExchangeRate] = useState(false);
 
   const isAdmin = user?.roles?.some((role) => role.name === 'administrator');
 
   const loadData = async () => {
     try {
       setLoading(true);
-      const [statsRes, usersRes, stocksRes] = await Promise.all([
+      const [statsRes, usersRes, stocksRes, exchangeRes] = await Promise.all([
         api.get('/admin/stats'),
         api.get('/admin/users'),
         api.get('/stock-module/stocks'),
+        api.get('/exchange-rate'),
       ]);
 
       setStats(statsRes.data);
       setUsers(usersRes.data);
       setStocks(stocksRes.data.stocks || []);
+      setExchangeRate(exchangeRes.data.rate.toString());
       setStockEdits(
         (stocksRes.data.stocks || []).reduce(
           (acc, stock) => ({ ...acc, [stock.network]: stock.quantity }),
@@ -102,6 +106,22 @@ const AdminPanel = () => {
       setUsers((prev) => prev.map((item) => (item.id === userId ? response.data : item)));
     } catch (err) {
       setError(err.response?.data?.message || 'Impossible d’approuver l’utilisateur.');
+    }
+  };
+
+  const handleSaveExchangeRate = async () => {
+    setSavingExchangeRate(true);
+    setError('');
+
+    try {
+      await api.put('/exchange-rate', {
+        rate: Number(exchangeRate),
+      });
+      // Optionally reload data or show success
+    } catch (err) {
+      setError(err.response?.data?.message || 'Impossible de mettre à jour le taux de change.');
+    } finally {
+      setSavingExchangeRate(false);
     }
   };
 
@@ -227,6 +247,26 @@ const AdminPanel = () => {
                 </div>
               )}
             </div>
+          </div>
+        </section>
+
+        <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200 mb-8">
+          <h2 className="text-lg font-semibold text-slate-900">Taux de Change</h2>
+          <p className="mt-2 text-sm text-slate-600">Définissez le taux de change USD vers FC.</p>
+          <div className="mt-6 flex gap-3 items-center">
+            <Input
+              type="number"
+              step="0.01"
+              value={exchangeRate}
+              onChange={(e) => setExchangeRate(e.target.value)}
+              placeholder="Taux de change"
+            />
+            <Button
+              onClick={handleSaveExchangeRate}
+              disabled={savingExchangeRate}
+            >
+              {savingExchangeRate ? 'Mise à jour...' : 'Mettre à jour'}
+            </Button>
           </div>
         </section>
 

@@ -28,11 +28,14 @@ const RemiseRepris = () => {
     }, {})
   );
   const [loading, setLoading] = useState(false);
-  const [loadingBalances, setLoadingBalances] = useState(true);  const [showModal, setShowModal] = useState(false);
+  const [loadingBalances, setLoadingBalances] = useState(true);
+  const [exchangeRate, setExchangeRate] = useState(null);
+  const [loadingExchangeRate, setLoadingExchangeRate] = useState(true);  const [showModal, setShowModal] = useState(false);
   const [timeSlot, setTimeSlot] = useState('');
   const [modalStep, setModalStep] = useState('timeSelection');
   useEffect(() => {
     loadBalances();
+    loadExchangeRate();
   }, []);
 
   const loadBalances = async () => {
@@ -53,6 +56,17 @@ const RemiseRepris = () => {
       console.error('Error loading balances:', error);
     } finally {
       setLoadingBalances(false);
+    }
+  };
+
+  const loadExchangeRate = async () => {
+    try {
+      const response = await api.get('/exchange-rate');
+      setExchangeRate(response.data.rate);
+    } catch (error) {
+      console.error('Error loading exchange rate:', error);
+    } finally {
+      setLoadingExchangeRate(false);
     }
   };
 
@@ -136,24 +150,37 @@ const RemiseRepris = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Exchange Rate Section */}
+        {!loadingExchangeRate && exchangeRate && (
+          <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Taux de Change</h2>
+            <p className="text-lg font-bold text-blue-600">1 USD = {exchangeRate.toLocaleString('fr-FR')} FC</p>
+          </div>
+        )}
+
         {/* Banks Section */}
-        <div className="bg-white rounded-lg shadow-sm border p-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Banks</h2>
-          <p className="text-gray-600 mb-6">Soldes actuels des comptes financiers</p>
+        <div className="bg-white rounded-lg shadow-sm border p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Comptes Financiers</h2>
+          <p className="text-gray-600 mb-6">Soldes actuels des comptes</p>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {accounts.map((account) => (
-              <div key={account} className="border rounded-lg p-6 bg-gradient-to-br from-gray-50 to-white hover:shadow-md transition-shadow">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">{account}</h3>
+              <div key={account} className="border rounded-lg p-4 bg-linear-to-br from-gray-50 to-white hover:shadow-lg hover:scale-105 transition-all duration-200 cursor-pointer">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <span className="text-2xl">
+                    {account === 'Mpesa' ? '📱' : account === 'OrangeMonnaie' ? '🟠' : account === 'AirtelMonnaie' ? '🔴' : account === 'S.C (SuperCompte)' ? '💳' : account === 'CashExpress' ? '💰' : '👛'}
+                  </span>
+                  {account}
+                </h3>
                 
                 {/* Display of saved balances */}
                 <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 bg-white rounded border border-gray-200">
-                    <span className="text-sm font-medium text-gray-700">Francs Congolais:</span>
+                  <div className="flex justify-between items-center p-2 bg-white rounded border border-gray-200 hover:bg-blue-50 transition-colors">
+                    <span className="text-sm font-medium text-gray-700">FC:</span>
                     <span className="text-lg font-bold text-blue-600">{parseFloat(savedBalances[account].fc).toLocaleString('fr-FR')}</span>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-white rounded border border-gray-200">
-                    <span className="text-sm font-medium text-gray-700">Dollars:</span>
+                  <div className="flex justify-between items-center p-2 bg-white rounded border border-gray-200 hover:bg-green-50 transition-colors">
+                    <span className="text-sm font-medium text-gray-700">USD:</span>
                     <span className="text-lg font-bold text-green-600">{parseFloat(savedBalances[account].usd).toLocaleString('fr-FR')}</span>
                   </div>
                 </div>
@@ -162,13 +189,41 @@ const RemiseRepris = () => {
           </div>
 
           {/* Save Button */}
-          <div className="mt-8 flex justify-center">
+          <div className="mt-8 flex justify-end items-center gap-4">
+            <span className="text-sm text-gray-600">Enregistrements disponibles : Matin et Midi</span>
             <Button
               onClick={handleOpenModal}
               disabled={loading}
               className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg"
             >
               {loading ? 'Enregistrement...' : 'Enregistrement solde'}
+            </Button>
+          </div>
+        </div>
+
+        {/* Mouvements Section */}
+        <div className="bg-white rounded-lg shadow-sm border p-6 mt-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Mouvements</h2>
+          <p className="text-gray-600 mb-6">Gestion des mouvements de soldes et justifications</p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Button
+              onClick={() => {}}
+              className="px-6 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg flex items-center justify-center gap-2"
+            >
+              ➕ Ajout Solde
+            </Button>
+            <Button
+              onClick={() => {}}
+              className="px-6 py-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg flex items-center justify-center gap-2"
+            >
+              ➖ Retrait Solde
+            </Button>
+            <Button
+              onClick={() => {}}
+              className="px-6 py-4 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-lg flex items-center justify-center gap-2"
+            >
+              📄 Justification
             </Button>
           </div>
         </div>

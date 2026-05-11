@@ -1,6 +1,8 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\AdminController;
 use App\Http\Controllers\Api\V1\InventoryController;
 use App\Http\Controllers\Api\V1\NetworkInventoryCheckController;
 use App\Http\Controllers\Api\V1\NetworkSaleController;
@@ -9,6 +11,7 @@ use App\Http\Controllers\Api\V1\ProductController;
 use App\Http\Controllers\Api\V1\SaleController;
 use App\Http\Controllers\Api\V1\StockController;
 use App\Http\Controllers\Api\V1\AccountBalanceController;
+use App\Http\Controllers\Api\V1\UserController;
 
 Route::middleware('auth:sanctum')->get('/user', [AuthController::class, 'me']);
 
@@ -23,6 +26,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('admin/users', [UserController::class, 'index']);
     Route::put('admin/users/{user}/role', [UserController::class, 'updateRole']);
     Route::get('admin/stats', [\App\Http\Controllers\Api\V1\AdminController::class, 'stats']);
+    Route::get('exchange-rate', [\App\Http\Controllers\Api\V1\AdminController::class, 'getExchangeRate']);
+    Route::put('exchange-rate', [\App\Http\Controllers\Api\V1\AdminController::class, 'updateExchangeRate']);
 
     Route::get('users/pending-super-agents', [UserController::class, 'pendingSuperAgents'])->middleware('permission:approve super agents');
     Route::post('users/{user}/approve', [UserController::class, 'approve'])->middleware('permission:approve super agents');

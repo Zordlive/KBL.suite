@@ -55,4 +55,25 @@ class AdminController extends Controller
             ],
         ]);
     }
+
+    public function getExchangeRate(Request $request)
+    {
+        $rate = \App\Models\Setting::getValue('exchange_rate', 2000); // Default to 2000 if not set
+        return Response::json(['rate' => (float) $rate]);
+    }
+
+    public function updateExchangeRate(Request $request)
+    {
+        if (! $request->user()->hasRole('administrator')) {
+            return Response::json(['message' => 'Unauthorized'], 403);
+        }
+
+        $request->validate([
+            'rate' => 'required|numeric|min:0',
+        ]);
+
+        \App\Models\Setting::setValue('exchange_rate', $request->rate);
+
+        return Response::json(['message' => 'Taux de change mis à jour']);
+    }
 }
