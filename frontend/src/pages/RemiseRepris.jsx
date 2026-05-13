@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 import Button from '../components/ui/Button';
@@ -30,13 +30,21 @@ const RemiseRepris = () => {
   const [loading, setLoading] = useState(false);
   const [loadingBalances, setLoadingBalances] = useState(true);
   const [exchangeRate, setExchangeRate] = useState(null);
-  const [loadingExchangeRate, setLoadingExchangeRate] = useState(true);  const [showModal, setShowModal] = useState(false);
+  const [loadingExchangeRate, setLoadingExchangeRate] = useState(true);
+  const [showModal, setShowModal] = useState(false);
   const [timeSlot, setTimeSlot] = useState('');
   const [modalStep, setModalStep] = useState('timeSelection');
-  useEffect(() => {
-    loadBalances();
-    loadExchangeRate();
-  }, []);
+  const [showMovementModal, setShowMovementModal] = useState(false);
+  const [actionModalType, setActionModalType] = useState(null);
+  const defaultMovementData = {
+    amount: '',
+    account: accounts[0],
+    status: 'Encaissé',
+    client: '',
+    justification: '',
+    scheduledAt: '',
+  };
+  const [actionData, setActionData] = useState(defaultMovementData);
 
   const loadBalances = async () => {
     try {
@@ -70,6 +78,13 @@ const RemiseRepris = () => {
     }
   };
 
+  /* eslint-disable react-hooks/exhaustive-deps, react-hooks/set-state-in-effect */
+  useEffect(() => {
+    loadBalances();
+    loadExchangeRate();
+  }, []);
+  /* eslint-enable react-hooks/exhaustive-deps, react-hooks/set-state-in-effect */
+
   const handleBalanceChange = (account, currency, value) => {
     setBalances(prev => ({
       ...prev,
@@ -78,6 +93,43 @@ const RemiseRepris = () => {
         [currency]: value
       }
     }));
+  };
+
+  const handleActionDataChange = (field, value) => {
+    setActionData(prev => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const openMovementModal = (type) => {
+    setActionModalType(type);
+    setActionData({
+      ...defaultMovementData,
+      account: accounts[0],
+      status: type === 'withdraw' ? 'Servie' : 'Encaissé',
+    });
+    setShowMovementModal(true);
+  };
+
+  const closeMovementModal = () => {
+    setShowMovementModal(false);
+    setActionModalType(null);
+    setActionData(defaultMovementData);
+    setLoading(false);
+  };
+
+  const handleConfirmMovement = async () => {
+    setLoading(true);
+    try {
+      // TODO: Replace with backend endpoint once movement API is available.
+      console.log('Saving movement', actionModalType, actionData);
+      closeMovementModal();
+    } catch (error) {
+      console.error('Error saving movement:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSaveBalances = async () => {
@@ -208,19 +260,19 @@ const RemiseRepris = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Button
-              onClick={() => {}}
+              onClick={() => openMovementModal('add')}
               className="px-6 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg flex items-center justify-center gap-2"
             >
               ➕ Ajout Solde
             </Button>
             <Button
-              onClick={() => {}}
+              onClick={() => openMovementModal('withdraw')}
               className="px-6 py-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg flex items-center justify-center gap-2"
             >
               ➖ Retrait Solde
             </Button>
             <Button
-              onClick={() => {}}
+              onClick={() => openMovementModal('justification')}
               className="px-6 py-4 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-lg flex items-center justify-center gap-2"
             >
               📄 Justification
@@ -327,6 +379,139 @@ const RemiseRepris = () => {
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {showMovementModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                {actionModalType === 'add' && 'Ajout Solde'}
+                {actionModalType === 'withdraw' && 'Retrait Solde'}
+                {actionModalType === 'justification' && 'Justification'}
+              </h2>
+              <p className="text-gray-600 mb-6">
+                {actionModalType === 'add' && 'Enregistrez un montant à ajouter et choisissez un compte.'}
+                {actionModalType === 'withdraw' && 'Enregistrez un montant à retirer et choisissez un compte.'}
+                {actionModalType === 'justification' && 'Ajoutez les détails du client, le montant et la justification.'}
+              </p>
+
+              <div className="space-y-4">
+                {(actionModalType === 'add' || actionModalType === 'withdraw') && (
+                  <>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Montant</label>
+                      <Input
+                        type="number"
+                        placeholder="0.00"
+                        value={actionData.amount}
+                        onChange={(e) => handleActionDataChange('amount', e.target.value)}
+                        className="w-full"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Compte</label>
+                      <select
+                        value={actionData.account}
+                        onChange={(e) => handleActionDataChange('account', e.target.value)}
+                        className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        {accounts.map((account) => (
+                          <option key={account} value={account}>{account}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Statut du mouvement</label>
+                      <select
+                        value={actionData.status}
+                        onChange={(e) => handleActionDataChange('status', e.target.value)}
+                        className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        {actionModalType === 'add' ? (
+                          <>
+                            <option value="Encaissé">Encaissé</option>
+                            <option value="Non Encaissé">Non Encaissé</option>
+                          </>
+                        ) : (
+                          <>
+                            <option value="Servie">Servie</option>
+                            <option value="Non servie">Non servie</option>
+                          </>
+                        )}
+                      </select>
+                    </div>
+                  </>
+                )}
+
+                {actionModalType === 'justification' && (
+                  <>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Nom du client</label>
+                      <Input
+                        type="text"
+                        placeholder="Nom du client"
+                        value={actionData.client}
+                        onChange={(e) => handleActionDataChange('client', e.target.value)}
+                        className="w-full"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Montant</label>
+                      <Input
+                        type="number"
+                        placeholder="0.00"
+                        value={actionData.amount}
+                        onChange={(e) => handleActionDataChange('amount', e.target.value)}
+                        className="w-full"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Justification</label>
+                      <textarea
+                        rows="4"
+                        placeholder="Motif / justification"
+                        value={actionData.justification}
+                        onChange={(e) => handleActionDataChange('justification', e.target.value)}
+                        className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Date et heure prévues</label>
+                      <Input
+                        type="datetime-local"
+                        value={actionData.scheduledAt}
+                        onChange={(e) => handleActionDataChange('scheduledAt', e.target.value)}
+                        className="w-full"
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={closeMovementModal}
+                  className="flex-1 py-2 px-4 border border-gray-300 rounded-lg font-medium text-gray-900 hover:bg-gray-50"
+                >
+                  Annuler
+                </button>
+                <Button
+                  onClick={handleConfirmMovement}
+                  disabled={loading}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold"
+                >
+                  {loading ? 'Confirmation...' : 'Confirmé'}
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       )}
