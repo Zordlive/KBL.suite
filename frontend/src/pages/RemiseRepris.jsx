@@ -43,13 +43,38 @@ const RemiseRepris = () => {
     client: '',
     justification: '',
     scheduledAt: '',
+    currency: 'FC',
   };
   const [actionData, setActionData] = useState(defaultMovementData);
   const [dailyMovements, setDailyMovements] = useState([]);
   const [archives, setArchives] = useState([]);
+  const [recordedBalances, setRecordedBalances] = useState({
+    Matin: accounts.reduce((acc, account) => {
+      acc[account] = { fc: '0', usd: '0' };
+      return acc;
+    }, {}),
+    Midi: accounts.reduce((acc, account) => {
+      acc[account] = { fc: '0', usd: '0' };
+      return acc;
+    }, {}),
+  });
   const [archiveSearchDate, setArchiveSearchDate] = useState('');
   const [showArchiveDetailsModal, setShowArchiveDetailsModal] = useState(false);
   const [selectedArchive, setSelectedArchive] = useState(null);
+
+  const formatFcAmount = (value) => {
+    const number = Number(value) || 0;
+    return number.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
+  const getSlotTotal = (slot) => {
+    const slotBalances = recordedBalances[slot] || {};
+    return accounts.reduce((total, account) => {
+      const fc = parseFloat(slotBalances[account]?.fc) || 0;
+      const usd = parseFloat(slotBalances[account]?.usd) || 0;
+      return total + fc + usd * (exchangeRate || 0);
+    }, 0);
+  };
 
   const loadBalances = async () => {
     try {
@@ -132,6 +157,7 @@ const RemiseRepris = () => {
         id: Date.now(),
         type: actionModalType,
         timestamp: new Date().toLocaleString('fr-FR'),
+        agent: user?.name || 'Agent',
         ...actionData,
       };
       
@@ -151,14 +177,52 @@ const RemiseRepris = () => {
   const handleSaveBalances = async () => {
     setLoading(true);
     try {
+      const rate = exchangeRate || 0;
       const balancesToSave = accounts.map(account => ({
         account_name: account,
         fc_balance: parseFloat(balances[account].fc) || 0,
         usd_balance: parseFloat(balances[account].usd) || 0,
         time_slot: timeSlot,
       }));
+
       await api.post('/account-balances', { balances: balancesToSave });
       await loadBalances(); // Reload to show saved balances
+
+      const savedSlotBalances = accounts.reduce((acc, account) => {
+        acc[account] = {
+          fc: balances[account].fc || '0',
+          usd: balances[account].usd || '0',
+        };
+        return acc;
+      }, {});
+
+      setRecordedBalances(prev => ({
+        ...prev,
+        [timeSlot]: savedSlotBalances,
+      }));
+
+      const movements = accounts.map((account, index) => {
+        const fcAmount = parseFloat(balances[account].fc) || 0;
+        const usdAmount = parseFloat(balances[account].usd) || 0;
+        const totalInFc = fcAmount + usdAmount * rate;
+
+        return {
+          id: Date.now() + index,
+          type: 'balance',
+          timestamp: new Date().toLocaleString('fr-FR'),
+          account,
+          amount: totalInFc.toFixed(2),
+          amountFc: fcAmount.toFixed(2),
+          amountUsd: usdAmount.toFixed(2),
+          currency: 'FC',
+          status: timeSlot,
+          timeSlot,
+          agent: user?.name || 'Agent',
+        };
+      });
+
+      setDailyMovements(prev => [...movements, ...prev]);
+
       // Reset inputs
       setBalances(
         accounts.reduce((acc, account) => {
@@ -262,46 +326,56 @@ const RemiseRepris = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Exchange Rate Section */}
-        {!loadingExchangeRate && exchangeRate && (
-          <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Taux de Change</h2>
-            <p className="text-lg font-bold text-blue-600">1 USD = {exchangeRate.toLocaleString('fr-FR')} FC</p>
-          </div>
-        )}
-
         {/* Banks Section */}
         <div className="bg-white rounded-lg shadow-sm border p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Comptes Financiers</h2>
-          <p className="text-gray-600 mb-6">Soldes actuels des comptes</p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {accounts.map((account) => (
-              <div key={account} className="border rounded-lg p-4 bg-linear-to-br from-gray-50 to-white hover:shadow-lg hover:scale-105 transition-all duration-200 cursor-pointer">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <span className="text-2xl">
-                    {account === 'Mpesa' ? '📱' : account === 'OrangeMonnaie' ? '🟠' : account === 'AirtelMonnaie' ? '🔴' : account === 'S.C (SuperCompte)' ? '💳' : account === 'CashExpress' ? '💰' : '👛'}
-                  </span>
-                  {account}
-                </h3>
-                
-                {/* Display of saved balances */}
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center p-2 bg-white rounded border border-gray-200 hover:bg-blue-50 transition-colors">
-                    <span className="text-sm font-medium text-gray-700">FC:</span>
-                    <span className="text-lg font-bold text-blue-600">{parseFloat(savedBalances[account].fc).toLocaleString('fr-FR')}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-2 bg-white rounded border border-gray-200 hover:bg-green-50 transition-colors">
-                    <span className="text-sm font-medium text-gray-700">USD:</span>
-                    <span className="text-lg font-bold text-green-600">{parseFloat(savedBalances[account].usd).toLocaleString('fr-FR')}</span>
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">Comptes Financiers</h2>
+              <p className="text-gray-600">Soldes enregistrés le matin et à midi</p>
+            </div>
+            {!loadingExchangeRate && exchangeRate && (
+              <div className="rounded-xl bg-blue-50 border border-blue-100 p-4 text-right w-full sm:w-auto">
+                <p className="text-xs uppercase tracking-wide font-semibold text-blue-600 mb-1">Taux d'échange</p>
+                <p className="text-lg font-bold text-blue-700">1 USD = {exchangeRate.toLocaleString('fr-FR')} FC</p>
+              </div>
+            )}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+            {accounts.map((account) => {
+              const morning = recordedBalances.Matin[account];
+              const midday = recordedBalances.Midi[account];
+              return (
+                <div key={account} className="border rounded-lg p-4 bg-linear-to-br from-gray-50 to-white hover:shadow-lg hover:scale-105 transition-all duration-200">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <span className="text-2xl">
+                      {account === 'Mpesa' ? '📱' : account === 'OrangeMonnaie' ? '🟠' : account === 'AirtelMonnaie' ? '🔴' : account === 'S.C (SuperCompte)' ? '💳' : account === 'CashExpress' ? '💰' : '👛'}
+                    </span>
+                    {account}
+                  </h3>
+
+                  <div className="space-y-3">
+                    <div className="rounded-lg bg-white p-3 border border-gray-200">
+                      <p className="text-xs uppercase tracking-wide text-gray-500 mb-2">Matin</p>
+                      <div className="grid grid-cols-2 gap-2 text-sm text-gray-700">
+                        <div className="rounded-lg bg-gray-50 p-2">FC: <span className="font-semibold text-blue-600">{formatFcAmount(morning.fc)}</span></div>
+                        <div className="rounded-lg bg-gray-50 p-2">USD: <span className="font-semibold text-green-600">{formatFcAmount(morning.usd)}</span></div>
+                      </div>
+                    </div>
+                    <div className="rounded-lg bg-white p-3 border border-gray-200">
+                      <p className="text-xs uppercase tracking-wide text-gray-500 mb-2">Midi</p>
+                      <div className="grid grid-cols-2 gap-2 text-sm text-gray-700">
+                        <div className="rounded-lg bg-gray-50 p-2">FC: <span className="font-semibold text-blue-600">{formatFcAmount(midday.fc)}</span></div>
+                        <div className="rounded-lg bg-gray-50 p-2">USD: <span className="font-semibold text-green-600">{formatFcAmount(midday.usd)}</span></div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Save Button */}
-          <div className="mt-8 flex justify-end items-center gap-4">
+          <div className="mt-8 flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
             <span className="text-sm text-gray-600">Enregistrements disponibles : Matin et Midi</span>
             <Button
               onClick={handleOpenModal}
@@ -310,6 +384,23 @@ const RemiseRepris = () => {
             >
               {loading ? 'Enregistrement...' : 'Enregistrement solde'}
             </Button>
+          </div>
+        </div>
+
+        {/* Total du Jour Section */}
+        <div className="bg-white rounded-lg shadow-sm border p-6 mt-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Total du Jour</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-6">
+              <p className="text-sm font-medium text-gray-600 mb-2">Total A</p>
+              <p className="text-3xl font-bold text-blue-700">{formatFcAmount(getSlotTotal('Matin'))} FC</p>
+              <p className="text-xs text-gray-500 mt-2">Somme des soldes enregistrés le matin en Francs Congolais</p>
+            </div>
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-6">
+              <p className="text-sm font-medium text-gray-600 mb-2">Total B</p>
+              <p className="text-3xl font-bold text-blue-700">{formatFcAmount(getSlotTotal('Midi'))} FC</p>
+              <p className="text-xs text-gray-500 mt-2">Somme des soldes enregistrés à midi en Francs Congolais</p>
+            </div>
           </div>
         </div>
 
@@ -370,10 +461,12 @@ const RemiseRepris = () => {
                         <span className={`px-3 py-1 rounded-full text-white text-xs font-semibold ${
                           movement.type === 'add' ? 'bg-blue-600' :
                           movement.type === 'withdraw' ? 'bg-red-600' :
+                          movement.type === 'balance' ? 'bg-indigo-600' :
                           'bg-yellow-600'
                         }`}>
                           {movement.type === 'add' ? '➕ Ajout' :
                            movement.type === 'withdraw' ? '➖ Retrait' :
+                           movement.type === 'balance' ? '📝 Enregistrement' :
                            '📄 Justification'}
                         </span>
                       </td>
@@ -381,17 +474,21 @@ const RemiseRepris = () => {
                       <td className="px-4 py-3 text-sm font-semibold text-gray-900">{movement.amount || '-'}</td>
                       <td className="px-4 py-3 text-sm">
                         <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          movement.status === 'Matin' ? 'bg-blue-100 text-blue-800' :
+                          movement.status === 'Midi' ? 'bg-sky-100 text-sky-800' :
                           movement.status === 'Encaissé' ? 'bg-green-100 text-green-800' :
                           movement.status === 'Servie' ? 'bg-green-100 text-green-800' :
                           movement.status === 'Non Encaissé' ? 'bg-red-100 text-red-800' :
+                          movement.status === 'Non servie' ? 'bg-red-100 text-red-800' :
                           'bg-red-100 text-red-800'
                         }`}>
                           {movement.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-700">
-                        {movement.client && `Client: ${movement.client}`}
-                        {movement.justification && `Justif: ${movement.justification.substring(0, 30)}...`}
+                      <td className="px-4 py-3 text-sm text-gray-700 space-y-1">
+                        {movement.agent && <div>Agent: {movement.agent}</div>}
+                        {movement.client && <div>Client: {movement.client}</div>}
+                        {movement.justification && <div>Justif: {movement.justification.substring(0, 30)}...</div>}
                       </td>
                     </tr>
                   ))}
@@ -475,10 +572,12 @@ const RemiseRepris = () => {
                         <span className={`px-3 py-1 rounded-full text-white text-xs font-semibold ${
                           archive.type === 'add' ? 'bg-blue-600' :
                           archive.type === 'withdraw' ? 'bg-red-600' :
+                          archive.type === 'balance' ? 'bg-indigo-600' :
                           'bg-yellow-600'
                         }`}>
                           {archive.type === 'add' ? '➕ Ajout' :
                            archive.type === 'withdraw' ? '➖ Retrait' :
+                           archive.type === 'balance' ? '📝 Enregistrement' :
                            '📄 Justification'}
                         </span>
                       </td>
@@ -486,17 +585,21 @@ const RemiseRepris = () => {
                       <td className="px-4 py-3 text-sm font-semibold text-gray-900">{archive.amount || '-'}</td>
                       <td className="px-4 py-3 text-sm">
                         <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          archive.status === 'Matin' ? 'bg-blue-100 text-blue-800' :
+                          archive.status === 'Midi' ? 'bg-sky-100 text-sky-800' :
                           archive.status === 'Encaissé' ? 'bg-green-100 text-green-800' :
                           archive.status === 'Servie' ? 'bg-green-100 text-green-800' :
                           archive.status === 'Non Encaissé' ? 'bg-red-100 text-red-800' :
+                          archive.status === 'Non servie' ? 'bg-red-100 text-red-800' :
                           'bg-red-100 text-red-800'
                         }`}>
                           {archive.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-700">
-                        {archive.client && `Client: ${archive.client}`}
-                        {archive.justification && `Justif: ${archive.justification.substring(0, 30)}...`}
+                      <td className="px-4 py-3 text-sm text-gray-700 space-y-1">
+                        {archive.agent && <div>Agent: {archive.agent}</div>}
+                        {archive.client && <div>Client: {archive.client}</div>}
+                        {archive.justification && <div>Justif: {archive.justification.substring(0, 30)}...</div>}
                       </td>
                     </tr>
                   ))}
@@ -639,6 +742,18 @@ const RemiseRepris = () => {
                     </div>
 
                     <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Devise</label>
+                      <select
+                        value={actionData.currency}
+                        onChange={(e) => handleActionDataChange('currency', e.target.value)}
+                        className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="FC">Franc Congolais (FC)</option>
+                        <option value="USD">Dollars (USD)</option>
+                      </select>
+                    </div>
+
+                    <div>
                       <label className="block text-xs font-medium text-gray-700 mb-1">Compte</label>
                       <select
                         value={actionData.account}
@@ -696,6 +811,18 @@ const RemiseRepris = () => {
                         onChange={(e) => handleActionDataChange('amount', e.target.value)}
                         className="w-full"
                       />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Devise</label>
+                      <select
+                        value={actionData.currency}
+                        onChange={(e) => handleActionDataChange('currency', e.target.value)}
+                        className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="FC">Franc Congolais (FC)</option>
+                        <option value="USD">Dollars (USD)</option>
+                      </select>
                     </div>
 
                     <div>
@@ -777,10 +904,12 @@ const RemiseRepris = () => {
                 <span className={`px-4 py-2 rounded-full text-white text-sm font-semibold ${
                   selectedArchive.type === 'add' ? 'bg-blue-600' :
                   selectedArchive.type === 'withdraw' ? 'bg-red-600' :
+                  selectedArchive.type === 'balance' ? 'bg-indigo-600' :
                   'bg-yellow-600'
                 }`}>
                   {selectedArchive.type === 'add' ? '➕ Ajout de solde' :
                    selectedArchive.type === 'withdraw' ? '➖ Retrait de solde' :
+                   selectedArchive.type === 'balance' ? '📝 Enregistrement' :
                    '📄 Justification'}
                 </span>
               </div>
@@ -789,7 +918,7 @@ const RemiseRepris = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Left Column */}
                 <div className="space-y-4">
-                  {(selectedArchive.type === 'add' || selectedArchive.type === 'withdraw') && (
+                  {(selectedArchive.type === 'add' || selectedArchive.type === 'withdraw' || selectedArchive.type === 'balance') && (
                     <>
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">Montant</label>
@@ -804,14 +933,35 @@ const RemiseRepris = () => {
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">Statut</label>
                         <span className={`px-3 py-1 rounded text-sm font-medium ${
+                          selectedArchive.status === 'Matin' ? 'bg-blue-100 text-blue-800' :
+                          selectedArchive.status === 'Midi' ? 'bg-sky-100 text-sky-800' :
                           selectedArchive.status === 'Encaissé' ? 'bg-green-100 text-green-800' :
                           selectedArchive.status === 'Servie' ? 'bg-green-100 text-green-800' :
                           selectedArchive.status === 'Non Encaissé' ? 'bg-red-100 text-red-800' :
-                          'bg-red-100 text-red-800'
+                          selectedArchive.status === 'Non servie' ? 'bg-red-100 text-red-800' :
+                          'bg-gray-100 text-gray-800'
                         }`}>
                           {selectedArchive.status}
                         </span>
                       </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Agent</label>
+                        <p className="text-sm font-semibold text-gray-900">{selectedArchive.agent || 'N/A'}</p>
+                      </div>
+
+                      {selectedArchive.type === 'balance' && (
+                        <>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">Montant FC original</label>
+                            <p className="text-sm text-gray-900">{selectedArchive.amountFc || '0.00'} FC</p>
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">Montant USD original</label>
+                            <p className="text-sm text-gray-900">{selectedArchive.amountUsd || '0.00'} USD</p>
+                          </div>
+                        </>
+                      )}
                     </>
                   )}
 
