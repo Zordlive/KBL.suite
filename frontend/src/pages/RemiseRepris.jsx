@@ -48,6 +48,8 @@ const RemiseRepris = () => {
   const [dailyMovements, setDailyMovements] = useState([]);
   const [archives, setArchives] = useState([]);
   const [archiveSearchDate, setArchiveSearchDate] = useState('');
+  const [showArchiveDetailsModal, setShowArchiveDetailsModal] = useState(false);
+  const [selectedArchive, setSelectedArchive] = useState(null);
 
   const loadBalances = async () => {
     try {
@@ -212,6 +214,16 @@ const RemiseRepris = () => {
       const archiveDate = new Date(archive.archivedDate).toLocaleDateString('fr-FR');
       return archiveDate === searchDate;
     });
+  };
+
+  const openArchiveDetailsModal = (archive) => {
+    setSelectedArchive(archive);
+    setShowArchiveDetailsModal(true);
+  };
+
+  const closeArchiveDetailsModal = () => {
+    setShowArchiveDetailsModal(false);
+    setSelectedArchive(null);
   };
 
   const handleTimeSlotSelect = (slot) => {
@@ -452,7 +464,11 @@ const RemiseRepris = () => {
                 </thead>
                 <tbody>
                   {getFilteredArchives().map((archive) => (
-                    <tr key={archive.id} className="border-b hover:bg-gray-50 transition-colors">
+                    <tr 
+                      key={archive.id} 
+                      className="border-b hover:bg-gray-50 transition-colors cursor-pointer"
+                      onClick={() => openArchiveDetailsModal(archive)}
+                    >
                       <td className="px-4 py-3 text-sm text-gray-700">{archive.archivedDate}</td>
                       <td className="px-4 py-3 text-sm text-gray-700">{archive.timestamp}</td>
                       <td className="px-4 py-3 text-sm font-medium">
@@ -721,6 +737,131 @@ const RemiseRepris = () => {
                   {loading ? 'Confirmation...' : 'Confirmé'}
                 </Button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Archive Details Modal */}
+      {showArchiveDetailsModal && selectedArchive && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Détails de l'opération</h2>
+              <button
+                onClick={closeArchiveDetailsModal}
+                className="text-gray-400 hover:text-gray-600 text-2xl"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              {/* Header Info */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Date d'archivage</label>
+                    <p className="text-sm font-semibold text-gray-900">{selectedArchive.archivedDate}</p>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Heure de l'opération</label>
+                    <p className="text-sm font-semibold text-gray-900">{selectedArchive.timestamp}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Operation Type */}
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-2">Type d'opération</label>
+                <span className={`px-4 py-2 rounded-full text-white text-sm font-semibold ${
+                  selectedArchive.type === 'add' ? 'bg-blue-600' :
+                  selectedArchive.type === 'withdraw' ? 'bg-red-600' :
+                  'bg-yellow-600'
+                }`}>
+                  {selectedArchive.type === 'add' ? '➕ Ajout de solde' :
+                   selectedArchive.type === 'withdraw' ? '➖ Retrait de solde' :
+                   '📄 Justification'}
+                </span>
+              </div>
+
+              {/* Operation Details */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Left Column */}
+                <div className="space-y-4">
+                  {(selectedArchive.type === 'add' || selectedArchive.type === 'withdraw') && (
+                    <>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Montant</label>
+                        <p className="text-lg font-bold text-gray-900">{selectedArchive.amount || 'N/A'}</p>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Compte</label>
+                        <p className="text-sm font-semibold text-gray-900">{selectedArchive.account || 'N/A'}</p>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Statut</label>
+                        <span className={`px-3 py-1 rounded text-sm font-medium ${
+                          selectedArchive.status === 'Encaissé' ? 'bg-green-100 text-green-800' :
+                          selectedArchive.status === 'Servie' ? 'bg-green-100 text-green-800' :
+                          selectedArchive.status === 'Non Encaissé' ? 'bg-red-100 text-red-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {selectedArchive.status}
+                        </span>
+                      </div>
+                    </>
+                  )}
+
+                  {selectedArchive.type === 'justification' && (
+                    <>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Nom du client</label>
+                        <p className="text-sm font-semibold text-gray-900">{selectedArchive.client || 'N/A'}</p>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Montant</label>
+                        <p className="text-lg font-bold text-gray-900">{selectedArchive.amount || 'N/A'}</p>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Date et heure prévues</label>
+                        <p className="text-sm font-semibold text-gray-900">{selectedArchive.scheduledAt || 'N/A'}</p>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Right Column */}
+                <div className="space-y-4">
+                  {selectedArchive.type === 'justification' && (
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Justification complète</label>
+                      <div className="bg-gray-50 rounded-lg p-3 max-h-32 overflow-y-auto">
+                        <p className="text-sm text-gray-900 whitespace-pre-wrap">{selectedArchive.justification || 'Aucune justification'}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Additional Info */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">ID de l'opération</label>
+                    <p className="text-xs font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded">{selectedArchive.id}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end mt-6">
+              <Button
+                onClick={closeArchiveDetailsModal}
+                className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg"
+              >
+                Fermer
+              </Button>
             </div>
           </div>
         </div>
