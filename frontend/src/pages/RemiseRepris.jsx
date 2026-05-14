@@ -45,6 +45,9 @@ const RemiseRepris = () => {
     scheduledAt: '',
   };
   const [actionData, setActionData] = useState(defaultMovementData);
+  const [dailyMovements, setDailyMovements] = useState([]);
+  const [archives, setArchives] = useState([]);
+  const [archiveSearchDate, setArchiveSearchDate] = useState('');
 
   const loadBalances = async () => {
     try {
@@ -122,6 +125,17 @@ const RemiseRepris = () => {
   const handleConfirmMovement = async () => {
     setLoading(true);
     try {
+      // Create a new movement object with timestamp
+      const newMovement = {
+        id: Date.now(),
+        type: actionModalType,
+        timestamp: new Date().toLocaleString('fr-FR'),
+        ...actionData,
+      };
+      
+      // Add movement to daily movements
+      setDailyMovements(prev => [newMovement, ...prev]);
+      
       // TODO: Replace with backend endpoint once movement API is available.
       console.log('Saving movement', actionModalType, actionData);
       closeMovementModal();
@@ -164,6 +178,40 @@ const RemiseRepris = () => {
     setShowModal(true);
     setModalStep('timeSelection');
     setTimeSlot('');
+  };
+
+  const handleEndOperations = () => {
+    if (dailyMovements.length === 0) {
+      alert('Aucune opération à finir.');
+      return;
+    }
+
+    // Add current date to movements for archiving
+    const archivedMovements = dailyMovements.map(movement => ({
+      ...movement,
+      archivedDate: new Date().toLocaleString('fr-FR'),
+    }));
+
+    // Add to archives
+    setArchives(prev => [...archivedMovements, ...prev]);
+
+    // Clear daily movements
+    setDailyMovements([]);
+
+    alert('Opérations du jour finalisées et archivées avec succès!');
+  };
+
+  const getFilteredArchives = () => {
+    if (!archiveSearchDate) {
+      return archives;
+    }
+
+    const searchDate = new Date(archiveSearchDate).toLocaleDateString('fr-FR');
+    
+    return archives.filter(archive => {
+      const archiveDate = new Date(archive.archivedDate).toLocaleDateString('fr-FR');
+      return archiveDate === searchDate;
+    });
   };
 
   const handleTimeSlotSelect = (slot) => {
@@ -278,6 +326,168 @@ const RemiseRepris = () => {
               📄 Justification
             </Button>
           </div>
+        </div>
+
+        {/* Daily Movements Section */}
+        <div className="bg-white rounded-lg shadow-sm border p-6 mt-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Mouvements Journaliers</h2>
+          <p className="text-gray-600 mb-6">Opérations effectuées aujourd'hui par les agents</p>
+          
+          {dailyMovements.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Aucune opération enregistrée pour le moment</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-100 border-b">
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Heure</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Type d'opération</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Compte</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Montant</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Statut</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Détails</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dailyMovements.map((movement) => (
+                    <tr key={movement.id} className="border-b hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-3 text-sm text-gray-700">{movement.timestamp}</td>
+                      <td className="px-4 py-3 text-sm font-medium">
+                        <span className={`px-3 py-1 rounded-full text-white text-xs font-semibold ${
+                          movement.type === 'add' ? 'bg-blue-600' :
+                          movement.type === 'withdraw' ? 'bg-red-600' :
+                          'bg-yellow-600'
+                        }`}>
+                          {movement.type === 'add' ? '➕ Ajout' :
+                           movement.type === 'withdraw' ? '➖ Retrait' :
+                           '📄 Justification'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">{movement.account || '-'}</td>
+                      <td className="px-4 py-3 text-sm font-semibold text-gray-900">{movement.amount || '-'}</td>
+                      <td className="px-4 py-3 text-sm">
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          movement.status === 'Encaissé' ? 'bg-green-100 text-green-800' :
+                          movement.status === 'Servie' ? 'bg-green-100 text-green-800' :
+                          movement.status === 'Non Encaissé' ? 'bg-red-100 text-red-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {movement.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        {movement.client && `Client: ${movement.client}`}
+                        {movement.justification && `Justif: ${movement.justification.substring(0, 30)}...`}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {dailyMovements.length > 0 && (
+            <div className="flex justify-end mt-6">
+              <Button
+                onClick={handleEndOperations}
+                className="px-8 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg"
+              >
+                ✓ Fin des opérations
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {/* Archives Section */}
+        <div className="bg-white rounded-lg shadow-sm border p-6 mt-6">
+          <div className="flex items-start justify-between mb-6">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-1">Archives</h2>
+              <p className="text-gray-600">Opérations journalières finalisées</p>
+            </div>
+            
+            {/* Search by Date - Top Right */}
+            <div className="flex items-end gap-2">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-2">Filtrer par date</label>
+                <Input
+                  type="date"
+                  value={archiveSearchDate}
+                  onChange={(e) => setArchiveSearchDate(e.target.value)}
+                  className="w-40"
+                />
+              </div>
+              {archiveSearchDate && (
+                <button
+                  onClick={() => setArchiveSearchDate('')}
+                  className="px-4 py-2 text-xs font-semibold text-white bg-gray-400 hover:bg-gray-500 rounded-lg transition-colors"
+                >
+                  ✕ Réinit.
+                </button>
+              )}
+            </div>
+          </div>
+
+          {getFilteredArchives().length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">
+                {archiveSearchDate ? 'Aucune opération trouvée pour cette date' : 'Aucune opération archivée pour le moment'}
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-100 border-b">
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Date d'archivage</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Heure opération</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Type d'opération</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Compte</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Montant</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Statut</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Détails</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {getFilteredArchives().map((archive) => (
+                    <tr key={archive.id} className="border-b hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-3 text-sm text-gray-700">{archive.archivedDate}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700">{archive.timestamp}</td>
+                      <td className="px-4 py-3 text-sm font-medium">
+                        <span className={`px-3 py-1 rounded-full text-white text-xs font-semibold ${
+                          archive.type === 'add' ? 'bg-blue-600' :
+                          archive.type === 'withdraw' ? 'bg-red-600' :
+                          'bg-yellow-600'
+                        }`}>
+                          {archive.type === 'add' ? '➕ Ajout' :
+                           archive.type === 'withdraw' ? '➖ Retrait' :
+                           '📄 Justification'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">{archive.account || '-'}</td>
+                      <td className="px-4 py-3 text-sm font-semibold text-gray-900">{archive.amount || '-'}</td>
+                      <td className="px-4 py-3 text-sm">
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          archive.status === 'Encaissé' ? 'bg-green-100 text-green-800' :
+                          archive.status === 'Servie' ? 'bg-green-100 text-green-800' :
+                          archive.status === 'Non Encaissé' ? 'bg-red-100 text-red-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {archive.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        {archive.client && `Client: ${archive.client}`}
+                        {archive.justification && `Justif: ${archive.justification.substring(0, 30)}...`}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
 
