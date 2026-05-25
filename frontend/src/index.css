@@ -1,1 +1,174 @@
 @import "tailwindcss";
+
+/* Global Styles */
+@layer base {
+  * {
+    @apply transition-colors duration-200;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-gray-50 font-sans;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-gray-900;
+  }
+}
+
+/* Custom Animations */
+@layer utilities {
+  @keyframes slideInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideInDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes pulse-soft {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+  }
+
+  .animate-slideInUp {
+    animation: slideInUp 500ms ease-out;
+  }
+
+  .animate-slideInDown {
+    animation: slideInDown 500ms ease-out;
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 300ms ease-out;
+  }
+
+  .animate-pulse-soft {
+    animation: pulse-soft 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Responsive Utilities */
+  .container-responsive {
+    @apply w-full px-4 sm:px-6 lg:px-8 mx-auto;
+  }
+
+  .text-responsive {
+    @apply text-sm sm:text-base md:text-lg;
+  }
+
+  .text-heading-responsive {
+    @apply text-xl sm:text-2xl md:text-3xl lg:text-4xl;
+  }
+
+  .gap-responsive {
+    @apply gap-3 sm:gap-4 md:gap-5 lg:gap-6;
+  }
+
+  .p-responsive {
+    @apply p-4 sm:p-6 md:p-8;
+  }
+
+  /* Shadow Utilities */
+  .shadow-card {
+    @apply shadow-md hover:shadow-lg transition-shadow;
+  }
+
+  .shadow-card-lg {
+    @apply shadow-lg hover:shadow-2xl transition-shadow;
+  }
+
+  /* Border Utilities */
+  .border-card {
+    @apply border border-gray-200;
+  }
+
+  .border-card-active {
+    @apply border-2 border-indigo-500;
+  }
+
+  /* Gradient Utilities */
+  .gradient-primary {
+    @apply bg-linear-to-br from-indigo-600 to-blue-600;
+  }
+
+  .gradient-primary-light {
+    @apply bg-linear-to-br from-indigo-50 to-blue-50;
+  }
+
+  .gradient-brand {
+    @apply bg-linear-to-r from-indigo-600 via-blue-600 to-purple-600;
+  }
+
+  /* Responsive Grid */
+  .grid-responsive {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6;
+  }
+
+  .grid-responsive-2 {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6;
+  }
+
+  /* Card Component */
+  .card {
+    @apply bg-white rounded-2xl border border-gray-200 shadow-md hover:shadow-lg transition-all;
+  }
+
+  .card-lg {
+    @apply bg-white rounded-2xl border border-gray-200 shadow-md hover:shadow-lg transition-all p-6 lg:p-8;
+  }
+
+  /* Button States */
+  .btn-icon {
+    @apply inline-flex items-center justify-center rounded-lg;
+  }
+
+  /* Form Inputs */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="date"],
+  input[type="datetime-local"],
+  select,
+  textarea {
+    @apply transition-all duration-200;
+  }
+
+  select:focus {
+    @apply ring-2 ring-indigo-500;
+  }
+
+  textarea:focus {
+    @apply ring-2 ring-indigo-500;
+  }
+}

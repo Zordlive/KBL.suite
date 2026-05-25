@@ -295,6 +295,78 @@ const RemiseRepris = () => {
     setModalStep('balanceEntry');
   };
 
+  const getAccountConfig = (account) => {
+    const config = {
+      'Mpesa': {
+        color: 'blue',
+        bgColor: 'bg-blue-600',
+        borderColor: 'border-l-blue-600',
+        lightBg: 'bg-blue-50',
+        icon: (
+          <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" />
+          </svg>
+        ),
+      },
+      'OrangeMonnaie': {
+        color: 'orange',
+        bgColor: 'bg-orange-500',
+        borderColor: 'border-l-orange-500',
+        lightBg: 'bg-orange-50',
+        icon: (
+          <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9" />
+          </svg>
+        ),
+      },
+      'AirtelMonnaie': {
+        color: 'red',
+        bgColor: 'bg-red-600',
+        borderColor: 'border-l-red-600',
+        lightBg: 'bg-red-50',
+        icon: (
+          <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" />
+          </svg>
+        ),
+      },
+      'S.C (SuperCompte)': {
+        color: 'yellow',
+        bgColor: 'bg-yellow-500',
+        borderColor: 'border-l-yellow-500',
+        lightBg: 'bg-yellow-50',
+        icon: (
+          <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-8zM9 12c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm6-6h2v2h-2zm0 3h2v2h-2z" />
+          </svg>
+        ),
+      },
+      'CashExpress': {
+        color: 'green',
+        bgColor: 'bg-green-600',
+        borderColor: 'border-l-green-600',
+        lightBg: 'bg-green-50',
+        icon: (
+          <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
+          </svg>
+        ),
+      },
+      'Portefeuille': {
+        color: 'purple',
+        bgColor: 'bg-purple-600',
+        borderColor: 'border-l-purple-600',
+        lightBg: 'bg-purple-50',
+        icon: (
+          <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M18 6h-2c0-2.66-2.16-5-5-5s-5 2.34-5 5H6c-1.1 0-1.99.9-1.99 2L4 19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-7-2c1.66 0 3 1.34 3 3h-6c0-1.66 1.34-3 3-3zm0 7c-2.76 0-5-2.24-5-5h2c0 1.66 1.34 3 3 3s3-1.34 3-3h2c0 2.76-2.24 5-5 5z" />
+          </svg>
+        ),
+      },
+    };
+    return config[account] || config['Mpesa'];
+  };
+
   if (loadingBalances) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -326,46 +398,98 @@ const RemiseRepris = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Banks Section */}
-        <div className="bg-white rounded-lg shadow-sm border p-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Comptes Financiers</h2>
-              <p className="text-gray-600">Soldes enregistrés le matin et à midi</p>
+        {/* Banks Section - Comptes Financiers */}
+        <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-8">
+          {/* Header with Icon and Exchange Rate */}
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between mb-8">
+            <div className="flex items-start gap-4">
+              <div className="p-3 rounded-xl bg-indigo-600 shrink-0">
+                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 1C5.925 1 1 5.925 1 12s4.925 11 11 11 11-4.925 11-11S18.075 1 12 1zm0 2c4.97 0 9 4.03 9 9s-4.03 9-9 9-9-4.03-9-9 4.03-9 9-9zm0 2c-3.865 0-7 3.135-7 7s3.135 7 7 7 7-3.135 7-7-3.135-7-7-7zm0 2c2.761 0 5 2.239 5 5s-2.239 5-5 5-5-2.239-5-5 2.239-5 5-5z" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Comptes Financiers</h2>
+                <p className="text-gray-600 text-sm mt-1">Soldes enregistrés le matin et à midi</p>
+              </div>
             </div>
+            
             {!loadingExchangeRate && exchangeRate && (
-              <div className="rounded-xl bg-blue-50 border border-blue-100 p-4 text-right w-full sm:w-auto">
-                <p className="text-xs uppercase tracking-wide font-semibold text-blue-600 mb-1">Taux d'échange</p>
-                <p className="text-lg font-bold text-blue-700">1 USD = {exchangeRate.toLocaleString('fr-FR')} FC</p>
+              <div className="rounded-xl bg-linear-to-br from-blue-50 to-indigo-50 border border-blue-200 p-5 text-right w-full sm:w-auto shadow-sm">
+                <p className="text-xs uppercase tracking-wider font-bold text-blue-700 mb-2">Taux d'échange</p>
+                <div className="flex items-center justify-end gap-2">
+                  <p className="text-2xl font-bold text-blue-900">1 USD = {exchangeRate.toLocaleString('fr-FR')} FC</p>
+                  <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M7 14l5-5 5 5H7z" transform="rotate(180 12 12)" />
+                  </svg>
+                </div>
               </div>
             )}
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+
+          {/* Accounts Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {accounts.map((account) => {
               const morning = recordedBalances.Matin[account];
               const midday = recordedBalances.Midi[account];
+              const config = getAccountConfig(account);
+              
               return (
-                <div key={account} className="border rounded-lg p-4 bg-linear-to-br from-gray-50 to-white hover:shadow-lg hover:scale-105 transition-all duration-200">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <span className="text-2xl">
-                      {account === 'Mpesa' ? '📱' : account === 'OrangeMonnaie' ? '🟠' : account === 'AirtelMonnaie' ? '🔴' : account === 'S.C (SuperCompte)' ? '💳' : account === 'CashExpress' ? '💰' : '👛'}
-                    </span>
-                    {account}
-                  </h3>
+                <div 
+                  key={account} 
+                  className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg hover:border-gray-300 transition-all duration-300 group"
+                >
+                  {/* Card Header with Icon and Status */}
+                  <div className="bg-linear-to-r from-gray-50 to-gray-100 p-5 border-b border-gray-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className={`${config.bgColor} p-2.5 rounded-lg shadow-md group-hover:shadow-lg transition-all`}>
+                          {config.icon}
+                        </div>
+                        <h3 className="text-base font-bold text-gray-900">{account}</h3>
+                      </div>
+                      <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                        <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                        Actif
+                      </span>
+                    </div>
+                  </div>
 
-                  <div className="space-y-3">
-                    <div className="rounded-lg bg-white p-3 border border-gray-200">
-                      <p className="text-xs uppercase tracking-wide text-gray-500 mb-2">Matin</p>
-                      <div className="grid grid-cols-2 gap-2 text-sm text-gray-700">
-                        <div className="rounded-lg bg-gray-50 p-2">FC: <span className="font-semibold text-blue-600">{formatFcAmount(morning.fc)}</span></div>
-                        <div className="rounded-lg bg-gray-50 p-2">USD: <span className="font-semibold text-green-600">{formatFcAmount(morning.usd)}</span></div>
+                  {/* Card Body - Balances */}
+                  <div className={`p-5 border-l-4 ${config.borderColor}`}>
+                    {/* Matin Section */}
+                    <div className="mb-5 pb-5 border-b border-gray-200">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-lg">☀️</span>
+                        <p className="text-xs font-bold uppercase text-gray-700 tracking-wide">Matin</p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-blue-50 rounded-lg p-3 text-center">
+                          <p className="text-xs text-gray-600 font-medium mb-1">FC</p>
+                          <p className="text-lg font-bold text-blue-700">{formatFcAmount(morning.fc)}</p>
+                        </div>
+                        <div className="bg-green-50 rounded-lg p-3 text-center">
+                          <p className="text-xs text-gray-600 font-medium mb-1">USD</p>
+                          <p className="text-lg font-bold text-green-700">{formatFcAmount(morning.usd)}</p>
+                        </div>
                       </div>
                     </div>
-                    <div className="rounded-lg bg-white p-3 border border-gray-200">
-                      <p className="text-xs uppercase tracking-wide text-gray-500 mb-2">Midi</p>
-                      <div className="grid grid-cols-2 gap-2 text-sm text-gray-700">
-                        <div className="rounded-lg bg-gray-50 p-2">FC: <span className="font-semibold text-blue-600">{formatFcAmount(midday.fc)}</span></div>
-                        <div className="rounded-lg bg-gray-50 p-2">USD: <span className="font-semibold text-green-600">{formatFcAmount(midday.usd)}</span></div>
+
+                    {/* Midi Section */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-lg">🌙</span>
+                        <p className="text-xs font-bold uppercase text-gray-700 tracking-wide">Midi</p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-blue-50 rounded-lg p-3 text-center">
+                          <p className="text-xs text-gray-600 font-medium mb-1">FC</p>
+                          <p className="text-lg font-bold text-blue-700">{formatFcAmount(midday.fc)}</p>
+                        </div>
+                        <div className="bg-green-50 rounded-lg p-3 text-center">
+                          <p className="text-xs text-gray-600 font-medium mb-1">USD</p>
+                          <p className="text-lg font-bold text-green-700">{formatFcAmount(midday.usd)}</p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -374,14 +498,22 @@ const RemiseRepris = () => {
             })}
           </div>
 
-          {/* Save Button */}
-          <div className="mt-8 flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
-            <span className="text-sm text-gray-600">Enregistrements disponibles : Matin et Midi</span>
+          {/* Footer with Button and Info */}
+          <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center pt-6 border-t border-gray-200">
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-indigo-600" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z" />
+              </svg>
+              <span className="text-sm font-medium text-gray-700">Enregistrements disponibles : Matin et Midi</span>
+            </div>
             <Button
               onClick={handleOpenModal}
               disabled={loading}
-              className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg"
+              className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
             >
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+              </svg>
               {loading ? 'Enregistrement...' : 'Enregistrement solde'}
             </Button>
           </div>

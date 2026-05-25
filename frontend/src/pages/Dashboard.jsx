@@ -11,72 +11,176 @@ const Dashboard = () => {
   const isAgent = roles.includes('agent');
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col gap-4 py-6 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h1 className="text-3xl font-semibold text-slate-900">KLB.suite</h1>
-              <p className="mt-1 text-sm text-slate-500">Tableau de bord professionnel pour la gestion des agents et des opérations.</p>
-            </div>
-            <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-              <div className="rounded-2xl bg-slate-100 px-4 py-2 text-sm text-slate-700">
-                {user?.name} • {isAdmin ? 'Administrateur' : isSuperAgent ? 'Super Agent' : 'Agent'}
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200 shadow-md sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-linear-to-br from-indigo-600 to-blue-600 rounded-lg">
+                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
+                </svg>
               </div>
-              {isAdmin && (
-                <Button onClick={() => window.location.assign('/admin')} variant="primary">
-                  Panneau admin
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">KLB.suite</h1>
+                <p className="text-sm text-gray-600 mt-1">Tableau de bord personnalisé</p>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+              <div className="rounded-lg bg-indigo-50 border border-indigo-200 px-4 py-2 text-sm">
+                <p className="font-semibold text-indigo-900">{user?.name}</p>
+                <p className="text-xs text-indigo-700">{isAdmin ? '👑 Administrateur' : isSuperAgent ? '⭐ Super Agent' : '👤 Agent'}</p>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {isAdmin && (
+                  <Button 
+                    onClick={() => window.location.assign('/admin')} 
+                    variant="primary"
+                    size="sm"
+                  >
+                    Admin
+                  </Button>
+                )}
+                <Button 
+                  onClick={logout} 
+                  variant="outline"
+                  size="sm"
+                >
+                  Quitter
                 </Button>
-              )}
-              <Button onClick={logout} variant="secondary">
-                Déconnexion
-              </Button>
+              </div>
             </div>
           </div>
         </div>
       </header>
+
+      {/* Main Content */}
       <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <section className="grid gap-6 lg:grid-cols-3">
-          <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-            <h2 className="text-lg font-semibold text-slate-900">Mon profil</h2>
-            <p className="mt-3 text-sm text-slate-600">{user?.position}</p>
-            <dl className="mt-6 grid gap-y-3 text-sm text-slate-600">
-              <div className="flex justify-between">
-                <dt>Agent</dt>
-                <dd>{user?.agent_number}</dd>
+        {/* Profile Cards Grid */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-10">
+          {/* Profile Card */}
+          <div className="card-lg">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="p-2.5 bg-indigo-100 rounded-lg">
+                <svg className="w-6 h-6 text-indigo-600" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                </svg>
               </div>
-              <div className="flex justify-between">
-                <dt>Statut</dt>
-                <dd>{user?.status}</dd>
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">Mon Profil</h2>
+                <p className="text-xs text-gray-600 mt-0.5">{user?.position}</p>
               </div>
-              <div className="flex justify-between">
-                <dt>Email</dt>
-                <dd>{user?.email}</dd>
+            </div>
+            
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between py-2 border-b border-gray-200">
+                <span className="text-gray-600">Agent N°:</span>
+                <span className="font-semibold text-gray-900">{user?.agent_number}</span>
               </div>
-            </dl>
-          </div>
-
-          <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-            <h2 className="text-lg font-semibold text-slate-900">Accès</h2>
-            <div className="mt-4 space-y-3 text-sm text-slate-600">
-              {isAdmin && <p>Accès complet au panneau d'administration et validation des Super Agents.</p>}
-              {isSuperAgent && <p>Accès Super Agent. Les opérations sont disponibles après validation du compte.</p>}
-              {isAgent && <p>Accès Agent. Lecture et ajout autorisés, modification et suppression restreints.</p>}
+              <div className="flex justify-between py-2 border-b border-gray-200">
+                <span className="text-gray-600">Statut:</span>
+                <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                  {user?.status === 'active' ? '✓ Actif' : 'Inactif'}
+                </span>
+              </div>
+              <div className="flex justify-between py-2">
+                <span className="text-gray-600">Email:</span>
+                <span className="font-medium text-gray-900 text-xs truncate">{user?.email}</span>
+              </div>
             </div>
           </div>
 
-          <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-            <h2 className="text-lg font-semibold text-slate-900">Actions rapides</h2>
-            <div className="mt-4 space-y-3 text-sm text-slate-600">
-              <p>Gestion des stocks, ventes journalières et inventaires sont accessibles depuis le menu principal.</p>
-              {isAdmin ? <p>Administration globale et validation des Super Agents.</p> : <p>Vos actions sont limitées selon votre rôle.</p>}
+          {/* Access Card */}
+          <div className="card-lg">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="p-2.5 bg-blue-100 rounded-lg">
+                <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M18 8h-1V6c0-2.76-2.24-5-5-5s-5 2.24-5 5v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6z" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">Permissions</h2>
+                <p className="text-xs text-gray-600 mt-0.5">Vos accès autorisés</p>
+              </div>
+            </div>
+
+            <div className="space-y-2 text-sm text-gray-700">
+              {isAdmin && (
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 bg-indigo-600 rounded-full"></span>
+                  <span>Accès complet administrateur</span>
+                </div>
+              )}
+              {isSuperAgent && (
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
+                  <span>Accès Super Agent validé</span>
+                </div>
+              )}
+              {isAgent && (
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 bg-green-600 rounded-full"></span>
+                  <span>Accès Agent standard</span>
+                </div>
+              )}
+              <p className="text-xs text-gray-600 mt-3 pt-2 border-t border-gray-200">
+                {isAdmin 
+                  ? 'Vous avez accès complet à l\'administration, à la validation des agents et aux rapports globaux.' 
+                  : isSuperAgent 
+                  ? 'Vous pouvez gérer les stocks et les remises après validation.' 
+                  : 'Vous avez accès aux opérations standard de gestion des stocks.'}
+              </p>
             </div>
           </div>
-        </section>
+
+          {/* Quick Actions Card */}
+          <div className="card-lg">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="p-2.5 bg-green-100 rounded-lg">
+                <svg className="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">Raccourcis</h2>
+                <p className="text-xs text-gray-600 mt-0.5">Accès rapide</p>
+              </div>
+            </div>
+
+            <div className="space-y-2 text-sm">
+              <p className="text-gray-700">Les modules de gestion sont accessibles depuis le menu principal:</p>
+              <div className="space-y-1.5 pt-2 border-t border-gray-200">
+                <div className="flex items-center gap-2 text-gray-700">
+                  <span className="text-indigo-600">▸</span>
+                  <span>Gestion des stocks</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-700">
+                  <span className="text-blue-600">▸</span>
+                  <span>Remise et reprise</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-700">
+                  <span className="text-green-600">▸</span>
+                  <span>Rapports journaliers</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Stock Management Section */}
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-md overflow-hidden">
+          <div className="px-6 lg:px-8 py-6 border-b border-gray-200 bg-linear-to-r from-gray-50 to-indigo-50">
+            <h2 className="text-2xl font-bold text-gray-900">Gestion des Stocks</h2>
+            <p className="text-sm text-gray-600 mt-1">Accédez au module de gestion des stocks ci-dessous</p>
+          </div>
+          <div className="p-6 lg:p-8">
+            <StockManagement />
+          </div>
+        </div>
       </main>
-      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <StockManagement />
-      </div>
     </div>
   );
 };

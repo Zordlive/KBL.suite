@@ -286,15 +286,15 @@ const StockManagement = () => {
   const activeDiscrepancy = discrepancies.length > 0;
 
   return (
-    <div className="space-y-6">
-      <header className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+    <div className="min-h-screen bg-gray-50">
+      <header className="rounded-2xl bg-white p-6 shadow-sm border border-gray-200">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="text-3xl font-semibold text-slate-900">Gestion Stock</h1>
-            <p className="mt-2 text-sm text-slate-600">Module professionnel de gestion des stocks Orange, Airtel et Vodacom.</p>
+            <h1 className="text-3xl font-semibold text-gray-900">Gestion Stock</h1>
+            <p className="mt-2 text-sm text-gray-600">Module professionnel de gestion des stocks Orange, Airtel et Vodacom.</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <span className="rounded-full bg-slate-100 px-3 py-2 text-sm text-slate-700">{user?.name}</span>
+            <span className="rounded-full bg-gray-100 px-3 py-2 text-sm text-gray-700">{user?.name}</span>
             {openingStatus.canSubmit && !openingStatus.completed ? (
               <Button
                 variant="secondary"
@@ -324,24 +324,24 @@ const StockManagement = () => {
       </header>
 
       {successMessage && (
-        <div className="rounded-3xl bg-emerald-50 border border-emerald-200 p-4 text-sm text-emerald-900 shadow-sm">
+        <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-4 text-sm text-emerald-900 shadow-sm">
           {successMessage}
         </div>
       )}
 
       {openingStatus.canSubmit || inventoryStatus.canSubmit ? null : (
-        <div className="rounded-3xl border-l-4 border-blue-500 bg-blue-50 p-6 text-sm text-blue-900 shadow-sm">
+        <div className="rounded-2xl border-l-4 border-blue-500 bg-blue-50 p-6 text-sm text-blue-900 shadow-sm">
           <strong className="block text-base">Fenêtres de vérification fermées</strong>
           <p>La vérification d’ouverture est disponible entre {openingStatus.cutoffStart} et {openingStatus.cutoffEnd}. L’inventaire du soir est disponible entre {inventoryStatus.cutoffStart} et {inventoryStatus.cutoffEnd}.</p>
         </div>
       )}
 
       {/* Section Enregistrement */}
-      <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+      <section className="rounded-2xl bg-white p-6 shadow-sm border border-gray-200">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-6">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Enregistrement</h2>
-            <p className="mt-1 text-sm text-slate-600">Enregistrez les ventes et consultez les stocks en temps réel</p>
+            <h2 className="text-xl font-semibold text-gray-900">Enregistrement</h2>
+            <p className="mt-1 text-sm text-gray-600">Enregistrez les ventes et consultez les stocks en temps réel</p>
           </div>
           <Button onClick={() => setShowSaleModal(true)} className="bg-blue-600 hover:bg-blue-700">
             Enregis mouv
@@ -351,36 +351,36 @@ const StockManagement = () => {
         {/* Stocks par réseau */}
         <div className="grid gap-4 lg:grid-cols-3 mb-8">
           {stocks.map((stock) => (
-            <div key={stock.network} className="rounded-2xl bg-linear-to-br from-slate-50 to-slate-100 p-6 border border-slate-200">
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">{stock.network}</h3>
+            <div key={stock.network} className="rounded-2xl bg-linear-to-br from-gray-50 to-gray-100 p-6 border border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">{stock.network}</h3>
               <p className="text-3xl font-bold text-blue-600">{formatNumber(stock.quantity)}</p>
-              <p className="text-sm text-slate-500 mt-1">unités disponibles</p>
+              <p className="text-sm text-gray-500 mt-1">unités disponibles</p>
             </div>
           ))}
         </div>
 
         {/* Vente détail - Écarts après inventaire */}
-        <div className="border-t border-slate-200 pt-6">
-          <h3 className="text-lg font-semibold text-slate-900 mb-4">Vente détail</h3>
+        <div className="border-t border-gray-200 pt-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Vente détail</h3>
           {inventoryStatus.completed ? (
             <div className="grid gap-4 lg:grid-cols-3">
               {['Orange', 'Airtel', 'Vodacom'].map((network) => {
                 const check = todayChecks.find((item) => item.network === network);
                 const discrepancy = check ? Math.abs(check.difference) : 0;
                 return (
-                  <div key={network} className="rounded-2xl bg-white p-5 border border-slate-200 shadow-sm">
-                    <h4 className="font-semibold text-slate-900 mb-3">{network}</h4>
+                  <div key={network} className="rounded-2xl bg-white p-5 border border-gray-200 shadow-sm">
+                    <h4 className="font-semibold text-gray-900 mb-3">{network}</h4>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-slate-600">Stock théorique:</span>
+                        <span className="text-gray-600">Stock théorique:</span>
                         <span className="font-medium">{check?.expected_quantity ?? '—'}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-600">Stock inventorié:</span>
+                        <span className="text-gray-600">Stock inventorié:</span>
                         <span className="font-medium">{check?.counted_quantity ?? '—'}</span>
                       </div>
-                      <div className="flex justify-between border-t border-slate-200 pt-2 mt-2">
-                        <span className="text-slate-600 font-medium">Écart détecté:</span>
+                      <div className="flex justify-between border-t border-gray-200 pt-2 mt-2">
+                        <span className="text-gray-600 font-medium">Écart détecté:</span>
                         <span className={`font-bold ${discrepancy > 0 ? 'text-red-600' : 'text-green-600'}`}>
                           {discrepancy > 0 ? `-${discrepancy}` : '0'}
                         </span>
@@ -391,8 +391,8 @@ const StockManagement = () => {
               })}
             </div>
           ) : (
-            <div className="text-center py-8 text-slate-500">
-              <svg className="mx-auto h-12 w-12 text-slate-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="text-center py-8 text-gray-500">
+              <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
               <p className="text-lg font-medium">Aucun inventaire effectué aujourd'hui</p>
@@ -403,10 +403,10 @@ const StockManagement = () => {
       </section>
 
       {/* Section Classeur */}
-      <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+      <section className="rounded-2xl bg-white p-6 shadow-sm border border-gray-200">
         <div className="mb-6">
-          <h2 className="text-xl font-semibold text-slate-900">Classeur</h2>
-          <p className="mt-1 text-sm text-slate-600">Historique complet des ventes enregistrées</p>
+          <h2 className="text-xl font-semibold text-gray-900">Classeur</h2>
+          <p className="mt-1 text-sm text-gray-600">Historique complet des ventes enregistrées</p>
         </div>
 
         <SalesTable
