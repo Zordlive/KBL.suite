@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
+import logoKLB from '../img/logoKLB.png';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -49,7 +50,16 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-indigo-50 via-white to-blue-50 px-4 py-8 sm:px-6 lg:px-8">
+    <div 
+      className="min-h-screen flex items-center justify-center bg-linear-to-br from-indigo-50 via-white to-blue-50 px-4 py-8 sm:px-6 lg:px-8 relative"
+      style={{
+        backgroundImage: `url(${logoKLB})`,
+        backgroundPosition: 'bottom right',
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: '300px 300px',
+        backgroundAttachment: 'fixed'
+      }}
+    >
       {/* Background Decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
@@ -60,11 +70,7 @@ const Register = () => {
         <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 p-8 sm:p-10">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-linear-to-br from-indigo-600 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-              </svg>
-            </div>
+            <img src={logoKLB} alt="KLB Logo" className="h-20 w-auto mx-auto mb-4 shadow-lg rounded-lg" />
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Créer un compte</h1>
             <p className="text-gray-600 text-sm">Inscrivez-vous en tant qu'Agent ou Super Agent</p>
           </div>

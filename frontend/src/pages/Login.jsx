@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
+import logoKLB from '../img/logoKLB.png';
 
 const Login = () => {
   const { login } = useAuth();
@@ -26,7 +27,16 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-indigo-50 via-white to-blue-50 px-4 py-8 sm:px-6 lg:px-8">
+    <div 
+      className="min-h-screen flex items-center justify-center bg-linear-to-br from-indigo-50 via-white to-blue-50 px-4 py-8 sm:px-6 lg:px-8 relative"
+      style={{
+        backgroundImage: `url(${logoKLB})`,
+        backgroundPosition: 'bottom right',
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: '300px 300px',
+        backgroundAttachment: 'fixed'
+      }}
+    >
       {/* Background Decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
@@ -37,11 +47,7 @@ const Login = () => {
         <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 p-8 sm:p-10">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-linear-to-br from-indigo-600 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z" />
-              </svg>
-            </div>
+            <img src={logoKLB} alt="KLB Logo" className="h-20 w-auto mx-auto mb-4 shadow-lg rounded-lg" />
             <h1 className="text-3xl font-bold text-gray-900 mb-2">KLB.suite</h1>
             <p className="text-gray-600 text-sm">Connexion à votre espace de travail</p>
           </div>

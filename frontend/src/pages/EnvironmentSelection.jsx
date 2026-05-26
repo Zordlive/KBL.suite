@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import Button from '../components/ui/Button';
+import logoKLB from '../img/logoKLB.png';
 
 const EnvironmentSelection = () => {
   const { user, logout } = useAuth();
@@ -19,17 +20,22 @@ const EnvironmentSelection = () => {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-900 via-indigo-900 to-blue-900">
+    <div 
+      className="min-h-screen bg-linear-to-br from-slate-900 via-indigo-900 to-blue-900 relative"
+      style={{
+        backgroundImage: `url(${logoKLB})`,
+        backgroundPosition: 'bottom right',
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: '300px 300px',
+        backgroundAttachment: 'fixed'
+      }}
+    >
       {/* Header Navigation */}
       <div className="bg-white shadow-md border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-linear-to-br from-indigo-600 to-blue-600 rounded-lg">
-                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
-                </svg>
-              </div>
+              <img src={logoKLB} alt="KLB Logo" className="h-10 w-auto shadow-md rounded-lg" />
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">KLB.suite</h1>
                 <p className="text-xs text-gray-600">Système de gestion intégré</p>

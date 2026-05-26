@@ -1,0 +1,261 @@
+/* ============================================
+   STOCKMANAGEMENT PAGE - ANIMATIONS & EFFECTS
+   ============================================ */
+
+/* Smooth Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(79, 70, 229, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(79, 70, 229, 0.3);
+  }
+}
+
+/* Animation Classes */
+.animate-in {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.slide-in-from-top {
+  animation: slideInFromTop 0.4s ease-out;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-glow {
+  animation: glow 3s ease-in-out infinite;
+}
+
+/* Smooth Transitions */
+.transition-smooth {
+  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transition-hover-scale {
+  transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Stock Cards - Advanced Hover Effects */
+.stock-card {
+  position: relative;
+  overflow: hidden;
+  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stock-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.5) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 500ms ease-out;
+  pointer-events: none;
+}
+
+.stock-card:hover::before {
+  opacity: 1;
+}
+
+.stock-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(79, 70, 229, 0.15);
+}
+
+/* Discrepancy Cards */
+.discrepancy-card {
+  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.discrepancy-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+}
+
+.discrepancy-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Header - Sticky Effect */
+header {
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+header.scrolled {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+/* Buttons - Enhanced Hover States */
+button {
+  position: relative;
+  overflow: hidden;
+}
+
+button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 600ms, height 600ms;
+}
+
+button:active::after {
+  width: 300px;
+  height: 300px;
+}
+
+/* Section Cards - Hover Effects */
+section {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+section:hover {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Alert Messages */
+.alert-success {
+  animation: slideInFromTop 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.alert-info {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+/* Loading State */
+.loading-skeleton {
+  background: linear-gradient(
+    90deg,
+    #f3f4f6 25%,
+    #e5e7eb 50%,
+    #f3f4f6 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Responsive Animations */
+@media (max-width: 640px) {
+  .stock-card:hover {
+    transform: translateY(-4px) scale(1.01);
+  }
+
+  section:hover {
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+  }
+}
+
+/* Gradient Text Animation */
+.gradient-text-animated {
+  background: linear-gradient(90deg, #4F46E5, #2563EB, #4F46E5);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientShift 3s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% center;
+  }
+  50% {
+    background-position: 100% center;
+  }
+  100% {
+    background-position: 0% center;
+  }
+}
+
+/* Dark Mode Support (Future) */
+@media (prefers-color-scheme: dark) {
+  .stock-card {
+    /* Dark mode styles will go here */
+  }
+}
+
+/* Accessibility - Reduce Motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .animate-in,
+  .slide-in-from-top,
+  .animate-pulse,
+  .animate-glow {
+    animation: none;
+  }
+}
+
+/* Print Styles */
+@media print {
+  header,
+  button,
+  .animate-in {
+    display: none;
+  }
+
+  section {
+    box-shadow: none;
+    page-break-inside: avoid;
+  }
+}

@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import api from '../services/api';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
+import logoKLB from '../img/logoKLB.png';
 
 const AdminPanel = () => {
   const { user, logout } = useAuth();
@@ -141,13 +142,29 @@ const AdminPanel = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div 
+      className="min-h-screen bg-gray-50 relative"
+      style={{
+        backgroundImage: `url(${logoKLB})`,
+        backgroundPosition: 'bottom right',
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: '400px 400px',
+        backgroundAttachment: 'fixed'
+      }}
+    >
+      {/* Overlay for better readability */}
+      <div className="absolute inset-0 bg-white/5 pointer-events-none"></div>
+      
+      <div className="relative z-10">
       <header className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 py-6 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h1 className="text-3xl font-semibold text-gray-900">Panneau d’administration</h1>
-              <p className="mt-1 text-sm text-gray-500">Gestion des stocks, des agents et des statistiques de l’application.</p>
+            <div className="flex items-start gap-3">
+              <img src={logoKLB} alt="KLB Logo" className="h-12 w-auto shadow-md rounded-lg" />
+              <div>
+                <h1 className="text-3xl font-semibold text-gray-900">Panneau d'administration</h1>
+                <p className="mt-1 text-sm text-gray-500">Gestion des stocks, des agents et des statistiques de l'application.</p>
+              </div>
             </div>
             <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
               <div className="rounded-2xl bg-gray-100 px-4 py-2 text-sm text-gray-700">
@@ -345,6 +362,7 @@ const AdminPanel = () => {
           </div>
         </section>
       </main>
+      </div>
     </div>
   );
 };

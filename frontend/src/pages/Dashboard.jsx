@@ -2,6 +2,7 @@ import React from 'react';
 import { useAuth } from '../hooks/useAuth';
 import Button from '../components/ui/Button';
 import StockManagement from './StockManagement';
+import logoKLB from '../img/logoKLB.png';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
@@ -11,17 +12,26 @@ const Dashboard = () => {
   const isAgent = roles.includes('agent');
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div 
+      className="min-h-screen bg-gray-50 relative"
+      style={{
+        backgroundImage: `url(${logoKLB})`,
+        backgroundPosition: 'bottom right',
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: '400px 400px',
+        backgroundAttachment: 'fixed'
+      }}
+    >
+      {/* Overlay for better readability */}
+      <div className="absolute inset-0 bg-white/5 pointer-events-none"></div>
+      
+      <div className="relative z-10">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 shadow-md sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-start gap-3">
-              <div className="p-2 bg-linear-to-br from-indigo-600 to-blue-600 rounded-lg">
-                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
-                </svg>
-              </div>
+              <img src={logoKLB} alt="KLB Logo" className="h-12 w-auto shadow-md rounded-lg" />
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">KLB.suite</h1>
                 <p className="text-sm text-gray-600 mt-1">Tableau de bord personnalisé</p>
@@ -181,6 +191,7 @@ const Dashboard = () => {
           </div>
         </div>
       </main>
+      </div>
     </div>
   );
 };

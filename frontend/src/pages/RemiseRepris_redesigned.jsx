@@ -3,7 +3,6 @@ import api from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
-import logoKLB from '../img/logoKLB.png';
 import './RemiseRepris.css';
 
 const accounts = [
@@ -110,10 +109,12 @@ const RemiseRepris = () => {
     }
   };
 
+  /* eslint-disable react-hooks/exhaustive-deps, react-hooks/set-state-in-effect */
   useEffect(() => {
     loadBalances();
     loadExchangeRate();
   }, []);
+  /* eslint-enable react-hooks/exhaustive-deps, react-hooks/set-state-in-effect */
 
   const handleBalanceChange = (account, currency, value) => {
     setBalances(prev => ({
@@ -346,30 +347,17 @@ const RemiseRepris = () => {
   }
 
   return (
-    <div 
-      className="min-h-screen bg-linear-to-br from-gray-50 via-gray-50 to-indigo-50 relative"
-      style={{
-        backgroundImage: `url(${logoKLB})`,
-        backgroundPosition: 'bottom right',
-        backgroundRepeat: 'no-repeat',
-        backgroundSize: '400px 400px',
-        backgroundAttachment: 'fixed'
-      }}
-    >
-      {/* Overlay for better readability */}
-      <div className="absolute inset-0 bg-white/5 pointer-events-none"></div>
-      
-      <div className="relative z-10">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-50 to-indigo-50">
       {/* ============ HEADER ============ */}
       <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-md backdrop-blur-sm bg-opacity-95">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-4 sm:py-6 flex flex-col gap-4 sm:gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                <img src={logoKLB} alt="KLB Logo" className="h-10 w-auto shadow-md rounded-lg" />
+                <div className="w-2 h-2 bg-linear-to-r from-indigo-600 to-blue-600 rounded-full"></div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Remise et Reprise</h1>
               </div>
-              <p className="text-sm text-gray-600 ml-14">Gestion centralisée des soldes des comptes</p>
+              <p className="text-sm text-gray-600 ml-5">Gestion centralisée des soldes des comptes</p>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
@@ -1015,7 +1003,6 @@ const RemiseRepris = () => {
           </div>
         </div>
       )}
-      </div>
     </div>
   );
 };
