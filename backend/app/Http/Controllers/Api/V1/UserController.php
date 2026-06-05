@@ -61,4 +61,65 @@ class UserController extends Controller
 
         return response()->json($user->load('roles'));
     }
+
+    public function updateStatus(Request $request, User $user)
+    {
+        if (!$request->user()->hasRole('administrator')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $request->validate([
+            'status' => 'required|in:active,suspended,pending',
+        ]);
+
+        $user->status = $request->input('status');
+        $user->save();
+
+        return response()->json($user->load('roles'));
+    }
+
+    public function update(Request $request, User $user)
+    {
+        if (!$request->user()->hasRole('administrator')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $request->validate([
+            'name' => 'sometimes|string|max:255',
+            'email' => 'sometimes|email|unique:users,email,' . $user->id,
+            'role' => 'sometimes|in:agent,super_agent,administrator',
+        ]);
+
+        if ($request->filled('name')) {
+            $user->name = $request->input('name');
+        }
+
+        if ($request->filled('email')) {
+            $user->email = $request->input('email');
+        }
+
+        if ($request->filled('role')) {
+            $user->syncRoles([$request->input('role')]);
+        }
+
+        $user->save();
+
+        return response()->json($user->load('roles'));
+    }
+
+    public function destroy(Request $request, User $user)
+    {
+        if (!$request->user()->hasRole('administrator')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        // Prevent deleting the authenticated user
+        if ($request->user()->id === $user->id) {
+            return response()->json(['message' => 'Impossible de supprimer votre propre compte'], 422);
+        }
+
+        $user->delete();
+
+        return response()->json(['message' => 'Utilisateur supprimé avec succès']);
+    }
 }

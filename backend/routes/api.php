@@ -25,6 +25,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // User management
     Route::get('admin/users', [UserController::class, 'index']);
     Route::put('admin/users/{user}/role', [UserController::class, 'updateRole']);
+    Route::put('admin/users/{user}/status', [UserController::class, 'updateStatus']);
+    Route::put('admin/users/{user}', [UserController::class, 'update']);
+    Route::delete('admin/users/{user}', [UserController::class, 'destroy']);
     Route::get('admin/stats', [\App\Http\Controllers\Api\V1\AdminController::class, 'stats']);
     Route::get('exchange-rate', [\App\Http\Controllers\Api\V1\AdminController::class, 'getExchangeRate']);
     Route::put('exchange-rate', [\App\Http\Controllers\Api\V1\AdminController::class, 'updateExchangeRate']);
@@ -62,6 +65,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('stock-module/inventories/logs', [NetworkInventoryCheckController::class, 'logs']);
     Route::get('stock-module/sales', [NetworkSaleController::class, 'index']);
     Route::post('stock-module/sales', [NetworkSaleController::class, 'store']);
+    Route::get('stock-module/sales/{id}', [NetworkSaleController::class, 'show']);
+    Route::put('stock-module/sales/{id}', [NetworkSaleController::class, 'update']);
     Route::get('stock-module/summary', [NetworkSaleController::class, 'summary']);
 
     // Inventories

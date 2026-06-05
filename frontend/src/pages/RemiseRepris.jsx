@@ -3,7 +3,11 @@ import api from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
+import NavBar from '../components/layout/NavBar';
 import logoKLB from '../img/logoKLB.png';
+import mpesaLogo from '../img/m-pesa-logo.png';
+import orangeMoneyLogo from '../img/Orange-Money-logo.png';
+import airtelMoneyLogo from '../img/airtel-money-logo.png';
 import './RemiseRepris.css';
 
 const accounts = [
@@ -16,7 +20,7 @@ const accounts = [
 ];
 
 const RemiseRepris = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [balances, setBalances] = useState(
     accounts.reduce((acc, account) => {
       acc[account] = { fc: '', usd: '' };
@@ -293,21 +297,21 @@ const RemiseRepris = () => {
         bgColor: 'bg-blue-600',
         borderColor: 'border-l-blue-600',
         lightBg: 'from-blue-50 to-blue-100',
-        icon: '📱',
+        logo: mpesaLogo,
       },
       'OrangeMonnaie': {
         color: 'orange',
         bgColor: 'bg-orange-500',
         borderColor: 'border-l-orange-500',
         lightBg: 'from-orange-50 to-orange-100',
-        icon: '🟠',
+        logo: orangeMoneyLogo,
       },
       'AirtelMonnaie': {
         color: 'red',
         bgColor: 'bg-red-600',
         borderColor: 'border-l-red-600',
         lightBg: 'from-red-50 to-red-100',
-        icon: '🔴',
+        logo: airtelMoneyLogo,
       },
       'S.C (SuperCompte)': {
         color: 'yellow',
@@ -359,40 +363,9 @@ const RemiseRepris = () => {
       {/* Overlay for better readability */}
       <div className="absolute inset-0 bg-white/5 pointer-events-none"></div>
       
+      <NavBar />
+      
       <div className="relative z-10">
-      {/* ============ HEADER ============ */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-md backdrop-blur-sm bg-opacity-95">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-4 sm:py-6 flex flex-col gap-4 sm:gap-6 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <img src={logoKLB} alt="KLB Logo" className="h-10 w-auto shadow-md rounded-lg" />
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Remise et Reprise</h1>
-              </div>
-              <p className="text-sm text-gray-600 ml-14">Gestion centralisée des soldes des comptes</p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="hidden sm:flex items-center gap-3 px-4 py-2 bg-gray-50 rounded-lg border border-gray-200 hover:border-indigo-300 transition-colors duration-300">
-                <div className="w-8 h-8 bg-linear-to-br from-indigo-500 to-blue-500 rounded-full flex items-center justify-center shadow-md">
-                  <span className="text-white text-xs font-bold">{user?.name?.charAt(0).toUpperCase()}</span>
-                </div>
-                <span className="text-sm font-medium text-gray-700">{user?.name}</span>
-              </div>
-
-              <Button
-                variant="danger"
-                size="sm"
-                onClick={logout}
-                className="text-xs sm:text-sm"
-              >
-                🚪 Sortie
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
       {/* ============ MAIN CONTENT ============ */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
         
@@ -438,8 +411,12 @@ const RemiseRepris = () => {
                     <div className={`bg-linear-to-r ${config.lightBg} p-5 border-b-2 ${config.borderColor}`}>
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
-                          <div className={`account-icon ${config.bgColor} p-3 rounded-lg shadow-md`}>
-                            <span className="text-2xl">{config.icon}</span>
+                          <div className={`account-icon ${config.bgColor} p-3 rounded-lg shadow-md flex items-center justify-center h-12 w-12`}>
+                            {config.logo ? (
+                              <img src={config.logo} alt={account} className="h-8 w-auto object-contain" />
+                            ) : (
+                              <span className="text-2xl">{config.icon}</span>
+                            )}
                           </div>
                           <h3 className="text-base font-bold text-gray-900">{account}</h3>
                         </div>

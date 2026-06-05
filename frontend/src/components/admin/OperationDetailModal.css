@@ -1,0 +1,357 @@
+/* ============================================
+   OPERATION DETAIL MODAL
+   ============================================ */
+.operation-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.operation-modal-container {
+  background: white;
+  border-radius: 1.25rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  max-width: 900px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (max-width: 768px) {
+  .operation-modal-container {
+    max-width: 100%;
+    border-radius: 1rem;
+    max-height: 95vh;
+  }
+}
+
+@media (max-width: 640px) {
+  .operation-modal-container {
+    max-width: 100%;
+    border-radius: 0.75rem;
+    max-height: 90vh;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ============================================
+   MODAL HEADER
+   ============================================ */
+.operation-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-bottom: 2px solid rgba(99, 102, 241, 0.1);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(59, 130, 246, 0.05) 100%);
+}
+
+@media (max-width: 640px) {
+  .operation-modal-header {
+    padding: 1rem;
+    gap: 0.75rem;
+  }
+}
+
+.operation-modal-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0;
+  background: linear-gradient(135deg, #6366f1 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@media (max-width: 768px) {
+  .operation-modal-title {
+    font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .operation-modal-title {
+    font-size: 1.125rem;
+  }
+}
+
+.operation-modal-subtitle {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  margin: 0.5rem 0 0 0;
+}
+
+.operation-modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  background: rgba(99, 102, 241, 0.08);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #6366f1;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .operation-modal-close {
+    width: 2rem;
+    height: 2rem;
+  }
+}
+
+.operation-modal-close:hover {
+  background: rgba(99, 102, 241, 0.15);
+  transform: rotate(90deg);
+}
+
+.operation-modal-close svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+/* ============================================
+   MODAL CONTENT
+   ============================================ */
+.operation-modal-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .operation-modal-content {
+    padding: 1.5rem 1.25rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .operation-modal-content {
+    padding: 1rem 1rem;
+    max-height: 70vh;
+  }
+}
+
+.operation-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .operation-details-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .operation-details-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+}
+
+.operation-detail-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.operation-detail-group.col-span-2 {
+  grid-column: span 2;
+}
+
+@media (max-width: 640px) {
+  .operation-detail-group.col-span-2 {
+    grid-column: span 1;
+  }
+}
+
+.operation-detail-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.operation-detail-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(59, 130, 246, 0.05) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+@media (max-width: 640px) {
+  .operation-detail-value {
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+  }
+}
+
+.operation-detail-value:hover {
+  border-color: rgba(99, 102, 241, 0.4);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+}
+
+.operation-detail-value-difference {
+  font-size: 1.125rem;
+  font-weight: 700;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+}
+
+.operation-detail-group.no-difference .operation-detail-value-difference {
+  color: #059669;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.operation-detail-group.positive-difference .operation-detail-value-difference {
+  color: #dc2626;
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+}
+
+.operation-detail-group.negative-difference .operation-detail-value-difference {
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.1);
+  border: 1px solid rgba(37, 99, 235, 0.3);
+}
+
+.operation-detail-select {
+  padding: 0.75rem 1rem;
+  border: 2px solid rgba(99, 102, 241, 0.2);
+  border-radius: 0.75rem;
+  background: white;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.operation-detail-select:hover {
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.operation-detail-select:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.operation-detail-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  width: fit-content;
+}
+
+.operation-detail-badge.resolved {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.operation-detail-badge.pending {
+  background: rgba(245, 158, 11, 0.1);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+/* ============================================
+   MODAL ACTIONS
+   ============================================ */
+.operation-modal-actions {
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-top: 2px solid rgba(99, 102, 241, 0.1);
+  background: rgba(99, 102, 241, 0.02);
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .operation-modal-actions {
+    padding: 1rem;
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .operation-modal-actions {
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+  }
+
+  .operation-modal-actions button {
+    width: 100%;
+    font-size: 0.875rem;
+  }
+}
+
+/* ============================================
+   SCROLLBAR STYLING
+   ============================================ */
+.operation-modal-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.operation-modal-content::-webkit-scrollbar-track {
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.operation-modal-content::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.3);
+  border-radius: 4px;
+}
+
+.operation-modal-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.5);
+}

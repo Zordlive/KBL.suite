@@ -51,6 +51,7 @@ const SaleModal = ({ isOpen, onClose, form, setForm, onSubmit, errors, saving })
             Numéro client
             <Input
               value={form.clientPhone}
+              maxLength="10"
               onChange={(event) => setForm((prev) => ({ ...prev, clientPhone: event.target.value }))}
             />
           </label>

@@ -115,4 +115,27 @@ class NetworkSaleController extends Controller
             'network_sales' => $networkSales,
         ]);
     }
-}
+
+    public function show($id)
+    {
+        $sale = NetworkSale::with('user')->findOrFail($id);
+        return Response::json($sale);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $sale = NetworkSale::findOrFail($id);
+
+        $data = $request->validate([
+            'client_name' => 'sometimes|string|max:255',
+            'client_phone' => 'sometimes|string|max:50',
+            'quantity' => 'sometimes|integer|min:1',
+            'payment_method' => 'sometimes|string|max:100',
+            'stock_before' => 'sometimes|integer|min:0',
+            'stock_after' => 'sometimes|integer|min:0',
+        ]);
+
+        $sale->update($data);
+
+        return Response::json($sale->fresh());
+    }

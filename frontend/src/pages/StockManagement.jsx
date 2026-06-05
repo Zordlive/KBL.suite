@@ -2,12 +2,16 @@ import React, { useEffect, useMemo, useState } from 'react';
 import api from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 import Button from '../components/ui/Button';
+import NavBar from '../components/layout/NavBar';
 import VerificationModal from '../components/stock/VerificationModal';
 import InventoryModal from '../components/stock/InventoryModal';
 import SaleModal from '../components/stock/SaleModal';
 import SalesTable from '../components/stock/SalesTable';
 import DiscrepancyAlertModal from '../components/stock/DiscrepancyAlertModal';
 import logoKLB from '../img/logoKLB.png';
+import orangeLogo from '../img/Orange_logo.png';
+import airtelLogo from '../img/Airtel_Logo.png';
+import vodacomLogo from '../img/vodacom-logo.png';
 import './StockManagement.css';
 
 const networks = ['Orange', 'Airtel', 'Vodacom'];
@@ -18,28 +22,28 @@ const networkColors = {
     border: 'border-orange-200', 
     text: 'text-orange-700', 
     badge: 'bg-orange-100 text-orange-800',
-    icon: '🟠'
+    logo: orangeLogo
   },
   Airtel: { 
     bg: 'from-red-50 to-red-100', 
     border: 'border-red-200', 
     text: 'text-red-700', 
     badge: 'bg-red-100 text-red-800',
-    icon: '🔴'
+    logo: airtelLogo
   },
   Vodacom: { 
     bg: 'from-blue-50 to-blue-100', 
     border: 'border-blue-200', 
     text: 'text-blue-700', 
     badge: 'bg-blue-100 text-blue-800',
-    icon: '🔵'
+    logo: vodacomLogo
   },
 };
 
 const formatNumber = (value) => new Intl.NumberFormat('fr-FR').format(value);
 
 const StockManagement = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const isAdmin = user?.roles?.some((role) => role.name === 'administrator');
 
   const [stocks, setStocks] = useState([]);
@@ -73,6 +77,8 @@ const StockManagement = () => {
   const [savingSale, setSavingSale] = useState(false);
   const [savingCheck, setSavingCheck] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [activeTab, setActiveTab] = useState('sales');
+  const [inventoryMovements, setInventoryMovements] = useState([]);
 
   const initCheckValues = (checks = []) => {
     const values = { Orange: 0, Airtel: 0, Vodacom: 0 };
@@ -218,6 +224,17 @@ const StockManagement = () => {
             ? '✓ Vérification d\'ouverture enregistrée et comparée à l\'inventaire du soir précédent.'
             : '✓ Inventaire du soir enregistré et comparé au stock courant.',
         );
+
+        // Add to inventory movements
+        const movementType = checkType === 'opening' ? 'Vérification d\'ouverture' : 'Inventaire du soir';
+        const newMovement = {
+          id: Date.now(),
+          type: movementType,
+          timestamp: new Date().toLocaleString('fr-FR'),
+          agent: user?.name || 'Agent',
+          details: checks.map(c => `${c.network}: ${c.counted_quantity}`).join(', '),
+        };
+        setInventoryMovements([newMovement, ...inventoryMovements]);
       }
 
       setShowCheckModal(false);
@@ -228,6 +245,25 @@ const StockManagement = () => {
       setErrorMessage(error.response?.data?.message || 'Erreur lors de la vérification.');
     } finally {
       setSavingCheck(false);
+    }
+  };
+
+  const handleRecordDiscrepancies = async () => {
+    try {
+      const newMovement = {
+        id: Date.now(),
+        type: 'discrepancy',
+        timestamp: new Date().toLocaleString('fr-FR'),
+        agent: user?.name || 'Agent',
+        details: todayChecks
+          .filter(check => Math.abs(check.difference) > 0)
+          .map(check => `${check.network}: ${check.difference}`)
+          .join(', '),
+      };
+      setInventoryMovements([newMovement, ...inventoryMovements]);
+      setSuccessMessage('✓ Écarts enregistrés dans le classeur d\'inventaire.');
+    } catch (error) {
+      setErrorMessage('Erreur lors de l\'enregistrement des écarts.');
     }
   };
 
@@ -319,78 +355,9 @@ const StockManagement = () => {
       {/* Overlay for better readability */}
       <div className="absolute inset-0 bg-white/5 pointer-events-none"></div>
       
+      <NavBar />
+      
       <div className="relative z-10">
-      {/* ============ HEADER ============ */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-md backdrop-blur-sm bg-opacity-95">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-4 sm:py-6 flex flex-col gap-4 sm:gap-6 lg:flex-row lg:items-center lg:justify-between">
-            {/* Brand & Title */}
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <img src={logoKLB} alt="KLB Logo" className="h-10 w-auto shadow-md rounded-lg" />
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Gestion des Stocks</h1>
-              </div>
-              <p className="text-sm text-gray-600 ml-14">Gestion centralisée Orange, Airtel et Vodacom</p>
-            </div>
-
-            {/* User & Actions */}
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              <div className="hidden sm:flex items-center gap-3 px-4 py-2 bg-gray-50 rounded-lg border border-gray-200 hover:border-indigo-300 transition-colors duration-300">
-                <div className="w-8 h-8 bg-linear-to-br from-indigo-500 to-blue-500 rounded-full flex items-center justify-center shadow-md">
-                  <span className="text-white text-xs font-bold">{user?.name?.charAt(0).toUpperCase()}</span>
-                </div>
-                <span className="text-sm font-medium text-gray-700">{user?.name}</span>
-              </div>
-
-              <div className="flex gap-2 flex-wrap">
-                {openingStatus.canSubmit && !openingStatus.completed && (
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={() => {
-                      setCheckType('opening');
-                      setShowCheckModal(true);
-                    }}
-                    className="text-xs sm:text-sm transform hover:scale-105 transition-transform duration-200"
-                  >
-                    📋 Ouverture
-                  </Button>
-                )}
-                {inventoryStatus.canSubmit && !inventoryStatus.completed && (
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={() => {
-                      setCheckType('evening');
-                      setShowCheckModal(true);
-                    }}
-                    className="text-xs sm:text-sm transform hover:scale-105 transition-transform duration-200"
-                  >
-                    📦 Inventaire
-                  </Button>
-                )}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowInventoryModal(true)}
-                  className="text-xs sm:text-sm"
-                >
-                  📊 Détails
-                </Button>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={logout}
-                  className="text-xs sm:text-sm"
-                >
-                  🚪 Sortie
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
       {/* ============ MAIN CONTENT ============ */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
         {/* Success Message */}
@@ -429,6 +396,90 @@ const StockManagement = () => {
           </div>
         )}
 
+        {/* ============ VERIFICATION BUTTONS SECTION ============ */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+          {/* Opening Verification Button */}
+          <div className="rounded-xl bg-white shadow-md border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+            <div className="flex flex-col h-full">
+              <div className="mb-4">
+                <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2 mb-2">
+                  <span className="text-2xl">🔍</span> Vérification d'Ouverture
+                </h3>
+                <p className="text-sm text-gray-600">
+                  {openingStatus.completed ? '✓ Complétée' : 'En attente'}
+                </p>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-4 mb-4 grow">
+                <p className="text-xs sm:text-sm text-gray-700 mb-2">
+                  <span className="font-semibold">Fenêtre:</span> {openingStatus.cutoffStart} - {openingStatus.cutoffEnd}
+                </p>
+                <div className="text-xs text-gray-600">
+                  <p>Comparez l'inventaire du soir précédent</p>
+                  <p>avec le stock à l'ouverture</p>
+                </div>
+              </div>
+              <Button
+                onClick={() => {
+                  setCheckType('opening');
+                  initCheckValues(todayChecks.filter(c => c.check_type === 'opening'));
+                  setShowCheckModal(true);
+                }}
+                disabled={!openingStatus.canSubmit && openingStatus.completed}
+                className={`w-full py-2 px-4 font-semibold transition-all duration-300 rounded-lg ${
+                  openingStatus.canSubmit 
+                    ? 'bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl hover:scale-105' 
+                    : openingStatus.completed 
+                    ? 'bg-green-100 text-green-700 cursor-not-allowed'
+                    : 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                }`}
+              >
+                {openingStatus.completed ? '✓ Complétée' : openingStatus.canSubmit ? '📋 Commencer' : '⏳ Fenêtre fermée'}
+              </Button>
+            </div>
+          </div>
+
+          {/* Evening Inventory Button */}
+          <div className="rounded-xl bg-white shadow-md border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+            <div className="flex flex-col h-full">
+              <div className="mb-4">
+                <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2 mb-2">
+                  <span className="text-2xl">📦</span> Inventaire du Soir
+                </h3>
+                <p className="text-sm text-gray-600">
+                  {inventoryStatus.completed ? '✓ Complété' : 'En attente'}
+                </p>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-4 mb-4 grow">
+                <p className="text-xs sm:text-sm text-gray-700 mb-2">
+                  <span className="font-semibold">Fenêtre:</span> {inventoryStatus.cutoffStart} - {inventoryStatus.cutoffEnd}
+                </p>
+                <div className="text-xs text-gray-600">
+                  <p>Inventoriez le stock actuel</p>
+                  <p>et validez les quantités</p>
+                </div>
+              </div>
+              <Button
+                onClick={() => {
+                  setInventoryValues(
+                    todayChecks.reduce((acc, check) => ({ ...acc, [check.network]: check.counted_quantity }), { Orange: 0, Airtel: 0, Vodacom: 0 })
+                  );
+                  setShowInventoryModal(true);
+                }}
+                disabled={!inventoryStatus.canSubmit && inventoryStatus.completed}
+                className={`w-full py-2 px-4 font-semibold transition-all duration-300 rounded-lg ${
+                  inventoryStatus.canSubmit 
+                    ? 'bg-linear-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg hover:shadow-xl hover:scale-105' 
+                    : inventoryStatus.completed 
+                    ? 'bg-green-100 text-green-700 cursor-not-allowed'
+                    : 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                }`}
+              >
+                {inventoryStatus.completed ? '✓ Complété' : inventoryStatus.canSubmit ? '📝 Commencer' : '⏳ Fenêtre fermée'}
+              </Button>
+            </div>
+          </div>
+        </section>
+
         {/* ============ STOCKS SECTION ============ */}
         <section className="rounded-xl bg-white shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300">
           <div className="p-6 sm:p-8 border-b border-gray-200 bg-linear-to-r from-gray-50 to-white">
@@ -464,7 +515,7 @@ const StockManagement = () => {
                     <div className="relative z-10">
                       <div className="flex items-center justify-between mb-3">
                         <h3 className="text-lg sm:text-xl font-bold text-gray-900">{stock.network}</h3>
-                        <span className="text-3xl transition-transform group-hover:scale-110 duration-300">{colors.icon}</span>
+                        <img src={colors.logo} alt={stock.network} className="h-10 w-auto transition-transform group-hover:scale-110 duration-300 object-contain" />
                       </div>
                       <p className="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-linear-to-r from-indigo-600 to-blue-600 mb-2">
                         {formatNumber(stock.quantity)}
@@ -481,9 +532,28 @@ const StockManagement = () => {
 
             {/* Detailed Inventory Analysis */}
             <div className="pt-8 border-t-2 border-gray-200">
-              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <span className="text-2xl">📈</span> Analyse des Écarts
-              </h3>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center gap-2">
+                  <span className="text-2xl">📈</span> Analyse des Écarts
+                </h3>
+                {inventoryStatus.completed && todayChecks.some(c => Math.abs(c.difference) > 0) && (
+                  <button
+                    onClick={handleRecordDiscrepancies}
+                    className="group relative px-6 py-2 overflow-hidden rounded-lg bg-linear-to-r from-purple-600 to-purple-700 font-semibold text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95"
+                  >
+                    <span className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-all duration-300"></span>
+                    <span className="absolute inset-0 overflow-hidden rounded-lg">
+                      <span className="absolute h-0 w-0 bg-white/30 rounded-full group-hover:h-32 group-hover:w-32 transition-all duration-500" style={{top: '50%', left: '50%', transform: 'translate(-50%, -50%)'}}></span>
+                    </span>
+                    <span className="relative flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      Enregistrer les Écarts
+                    </span>
+                  </button>
+                )}
+              </div>
               {inventoryStatus.completed ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   {['Orange', 'Airtel', 'Vodacom'].map((network) => {
@@ -544,31 +614,126 @@ const StockManagement = () => {
           </div>
         </section>
 
-        {/* ============ SALES HISTORY SECTION ============ */}
+        {/* ============ HISTORIQUE & INVENTAIRE SECTION ============ */}
         <section className="rounded-xl bg-white shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300">
           <div className="p-6 sm:p-8 border-b border-gray-200 bg-linear-to-r from-gray-50 to-white">
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <span className="text-2xl">📋</span> Historique des Ventes
+              <span className="text-2xl">📚</span> Historique & Inventaire
             </h2>
-            <p className="text-sm text-gray-600 mt-1">Suivi détaillé de toutes les transactions</p>
+            <p className="text-sm text-gray-600 mt-1">Consultez les ventes ou les mouvements d'inventaire</p>
           </div>
 
+          {/* Tabs Navigation */}
+          <div className="px-6 sm:px-8 pt-6 border-b border-gray-200">
+            <div className="flex gap-2 sm:gap-4">
+              <button
+                onClick={() => setActiveTab('sales')}
+                className={`relative group px-4 sm:px-6 py-3 font-semibold transition-all duration-300 ${
+                  activeTab === 'sales'
+                    ? 'text-blue-600'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M9 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h4V3zm0 14H7v-2h2v2zm0-4H7v-2h2v2zm0-4H7V7h2v2zm10 12h4c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-4v14zm0-14h2v2h-2V7zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2z" />
+                  </svg>
+                  Classeur des Ventes
+                </span>
+                {activeTab === 'sales' && (
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-linear-to-r from-blue-600 to-blue-400 rounded-t transform transition-all duration-300"></div>
+                )}
+              </button>
+
+              <button
+                onClick={() => setActiveTab('inventory')}
+                className={`relative group px-4 sm:px-6 py-3 font-semibold transition-all duration-300 ${
+                  activeTab === 'inventory'
+                    ? 'text-green-600'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" />
+                  </svg>
+                  Classeur d'inventaire
+                </span>
+                {activeTab === 'inventory' && (
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-linear-to-r from-green-600 to-green-400 rounded-t transform transition-all duration-300"></div>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Tab Content */}
           <div className="p-6 sm:p-8">
-            <SalesTable
-              sales={sales}
-              filters={filters}
-              onFiltersChange={(updated) => setFilters(updated)}
-              onPageChange={(page) => setFilters((prev) => ({ ...prev, page }))}
-              pagination={{
-                page: salesMeta.page,
-                lastPage: salesMeta.last_page,
-                total: salesMeta.total,
-                offset: salesMeta.offset,
-              }}
-              onExportExcel={exportToExcel}
-              onExportPdf={exportToPdf}
-              loading={!sales}
-            />
+            {/* Sales Tab */}
+            {activeTab === 'sales' && (
+              <div className="animate-in fade-in duration-300">
+                <SalesTable
+                  sales={sales}
+                  filters={filters}
+                  onFiltersChange={(updated) => setFilters(updated)}
+                  onPageChange={(page) => setFilters((prev) => ({ ...prev, page }))}
+                  pagination={{
+                    page: salesMeta.page,
+                    lastPage: salesMeta.last_page,
+                    total: salesMeta.total,
+                    offset: salesMeta.offset,
+                  }}
+                  onExportExcel={exportToExcel}
+                  onExportPdf={exportToPdf}
+                  loading={!sales}
+                />
+              </div>
+            )}
+
+            {/* Inventory Tab */}
+            {activeTab === 'inventory' && (
+              <div className="animate-in fade-in duration-300">
+                {inventoryMovements.length === 0 ? (
+                  <div className="rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 py-12 text-center hover:bg-gray-100 hover:border-gray-400 transition-all duration-300">
+                    <div className="text-5xl mb-3">📭</div>
+                    <p className="text-lg font-semibold text-gray-900">Aucun mouvement d'inventaire</p>
+                    <p className="text-sm text-gray-600 mt-2">Les mouvements apparaîtront après enregistrement des vérifications</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="bg-gray-100 border-b-2 border-gray-200">
+                          <th className="px-4 py-3 text-left text-sm font-bold text-gray-900">Date & Heure</th>
+                          <th className="px-4 py-3 text-left text-sm font-bold text-gray-900">Type</th>
+                          <th className="px-4 py-3 text-left text-sm font-bold text-gray-900">Détails</th>
+                          <th className="px-4 py-3 text-left text-sm font-bold text-gray-900">Agent</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {inventoryMovements.map((movement) => (
+                          <tr key={movement.id} className="border-b hover:bg-indigo-50 transition-colors">
+                            <td className="px-4 py-3 text-sm text-gray-700">{movement.timestamp}</td>
+                            <td className="px-4 py-3 text-sm font-medium">
+                              <span className={`px-3 py-1 rounded-full text-white text-xs font-semibold ${
+                                movement.type === 'Vérification d\'ouverture' ? 'bg-blue-600' :
+                                movement.type === 'Inventaire du soir' ? 'bg-green-600' :
+                                'bg-purple-600'
+                              }`}>
+                                {movement.type === 'Vérification d\'ouverture' ? '📋 Ouverture' :
+                                 movement.type === 'Inventaire du soir' ? '📦 Soir' :
+                                 '⚠️ Écarts'}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-sm text-gray-700">{movement.details}</td>
+                            <td className="px-4 py-3 text-sm font-semibold text-gray-900">{movement.agent}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </section>
       </main>

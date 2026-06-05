@@ -3,6 +3,9 @@ import api from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
+import mpesaLogo from '../img/m-pesa-logo.png';
+import orangeMoneyLogo from '../img/Orange-Money-logo.png';
+import airtelMoneyLogo from '../img/airtel-money-logo.png';
 import './RemiseRepris.css';
 
 const accounts = [
@@ -294,21 +297,21 @@ const RemiseRepris = () => {
         bgColor: 'bg-blue-600',
         borderColor: 'border-l-blue-600',
         lightBg: 'from-blue-50 to-blue-100',
-        icon: '📱',
+        logo: mpesaLogo,
       },
       'OrangeMonnaie': {
         color: 'orange',
         bgColor: 'bg-orange-500',
         borderColor: 'border-l-orange-500',
         lightBg: 'from-orange-50 to-orange-100',
-        icon: '🟠',
+        logo: orangeMoneyLogo,
       },
       'AirtelMonnaie': {
         color: 'red',
         bgColor: 'bg-red-600',
         borderColor: 'border-l-red-600',
         lightBg: 'from-red-50 to-red-100',
-        icon: '🔴',
+        logo: airtelMoneyLogo,
       },
       'S.C (SuperCompte)': {
         color: 'yellow',
@@ -347,7 +350,7 @@ const RemiseRepris = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-50 to-indigo-50">
+    <div className="min-h-screen bg-linear-to-br from-gray-50 via-gray-50 to-indigo-50">
       {/* ============ HEADER ============ */}
       <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-md backdrop-blur-sm bg-opacity-95">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -426,8 +429,12 @@ const RemiseRepris = () => {
                     <div className={`bg-linear-to-r ${config.lightBg} p-5 border-b-2 ${config.borderColor}`}>
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
-                          <div className={`account-icon ${config.bgColor} p-3 rounded-lg shadow-md`}>
-                            <span className="text-2xl">{config.icon}</span>
+                          <div className={`account-icon ${config.bgColor} p-3 rounded-lg shadow-md flex items-center justify-center h-12 w-12`}>
+                            {config.logo ? (
+                              <img src={config.logo} alt={account} className="h-8 w-auto object-contain" />
+                            ) : (
+                              <span className="text-2xl">{config.icon}</span>
+                            )}
                           </div>
                           <h3 className="text-base font-bold text-gray-900">{account}</h3>
                         </div>
