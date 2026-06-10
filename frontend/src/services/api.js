@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api', // Adjust to your backend URL
+  baseURL: 'https://kilubak.shop/api', // Adjust to your backend URL
   headers: {
     'Content-Type': 'application/json',
   },
