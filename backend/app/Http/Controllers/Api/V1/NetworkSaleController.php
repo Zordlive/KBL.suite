@@ -139,3 +139,4 @@ class NetworkSaleController extends Controller
 
         return Response::json($sale->fresh());
     }
+}
