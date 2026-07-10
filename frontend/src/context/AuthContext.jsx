@@ -16,8 +16,18 @@ export const AuthProvider = ({ children }) => {
     }
 
     api.get('/user')
-      .then((response) => setUser(response.data))
-      .catch(() => localStorage.removeItem('token'))
+       .then((response) => {
+        console.log("API USER =", response);
+        console.log("DATA =", response.data);
+
+        setUser(response.data);
+      })
+      .catch((error) => {
+        console.log("ERREUR =", error);
+        console.log("REPONSE =", error.response);
+
+        localStorage.removeItem('token');
+      })
       .finally(() => setLoading(false));
   }, []);
 

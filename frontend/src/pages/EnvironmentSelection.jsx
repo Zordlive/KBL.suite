@@ -7,6 +7,9 @@ import logoKLB from '../img/logoKLB.png';
 
 const EnvironmentSelection = () => {
   const { user } = useAuth();
+
+  console.log("USER =", user);
+  
   const navigate = useNavigate();
   const isAdmin = user?.roles?.some((role) => role.name === 'administrator');
 
@@ -41,7 +44,7 @@ const EnvironmentSelection = () => {
           <div className="text-center mb-12">
             <h2 className="text-4xl sm:text-5xl font-bold text-blue-900 mb-4">
               Bienvenue,</h2> <h2 className="text-4xl sm:text-5xl font-bold text-green-600 mb-4">
-                {user?.name.split(' ')[0]}! 👋
+                {user?.name?.split(' ')[0] ?? 'Utilisateur'}! 👋
               </h2>
             <p className="text-xl text-blue-600 mb-2">
               Sélectionnez votre environnement de travail

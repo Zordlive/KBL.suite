@@ -204,7 +204,48 @@ npm run deploy:production
 ```
 
 ---
+## 🏠 Déploiement Hostinger recommandé
 
+### Architecture recommandée
+- Frontend React : `https://kilubak.shop`
+- API Laravel : `https://api.kilubak.shop`
+- Pointage du sous-domaine `api.kilubak.shop` vers le dossier Laravel `public`
+
+### Frontend
+1. Créer un fichier `frontend/.env` à partir de `frontend/.env.example`.
+2. Vérifier que `frontend/.env` est bien ignoré par Git via `.gitignore`.
+3. Définir la variable :
+```env
+VITE_API_URL=https://api.kilubak.shop/api
+```
+4. Lancer `npm run build`.
+5. Déployer le contenu de `frontend/dist` dans `public_html`.
+
+### Backend
+1. Placer le dossier Laravel en dehors de `public_html` si possible.
+2. Pointer le sous-domaine `api.kilubak.shop` vers `laravel/public`.
+3. Mettre à jour `backend/.env` avec :
+```env
+APP_URL=https://api.kilubak.shop
+SESSION_DOMAIN=.kilubak.shop
+SANCTUM_STATEFUL_DOMAINS=kilubak.shop,api.kilubak.shop
+```
+
+### Option mono-domaine si vous ne pouvez pas créer de sous-domaine
+1. Placer le contenu de `backend/public` dans `public_html/api`.
+2. Conserver `public_html/index.html` pour React.
+3. Vérifier que `public_html/api/.htaccess` contient :
+```apache
+DirectoryIndex index.php
+DirectorySlash Off
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.php [L]
+```
+4. Si Hostinger force la redirection `/api` vers un dossier, demandez-leur de désactiver ce comportement.
+
+---
 ## 📱 Vérification Multi-Device
 
 ### Desktop
